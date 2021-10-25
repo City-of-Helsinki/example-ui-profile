@@ -88,7 +88,9 @@ describe('Profile.ts', () => {
     const email = 'email@dom.com';
     const emailDataTree = { emails: { edges: [{ node: { email } }] } };
     const response = createValidProfileResponseData(emailDataTree);
-    const data = convertQueryToData(response as ProfileQueryResult);
+    const data = convertQueryToData(
+      (response as unknown) as ProfileQueryResult
+    );
     expect(data && data.email).toBe(email);
     expect(data).toHaveProperty('id');
     expect(data).toHaveProperty('firstName');
