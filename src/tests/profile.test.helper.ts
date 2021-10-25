@@ -27,10 +27,26 @@ export const mockProfileResponse = (options: {
   });
 };
 
+export const getProfileData = (): ProfileData => ({
+  id: 'id',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  nickname: 'nickname',
+  language: 'fi',
+  primaryEmail: null,
+  primaryAddress: null,
+  primaryPhone: null,
+  addresses: null,
+  emails: null,
+  phones: null,
+  verifiedPersonalInformation: null
+});
+
 export const createValidProfileResponse = (
   overrides?: ProfileData
 ): { status: number; body: string } => {
   const responseBody = createValidProfileResponseData({
+    ...getProfileData(),
     firstName: 'firstName',
     ...overrides
   });

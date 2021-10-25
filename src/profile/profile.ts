@@ -19,7 +19,7 @@ import { JWTPayload } from '../client';
 
 let profileGqlClient: GraphQLClient;
 
-export type ProfileDataType = string | AnyObject | undefined;
+export type ProfileDataType = string | AnyObject | undefined | null;
 export type ProfileErrorType = Error | GraphQLClientError | string | undefined;
 export type ProfileData = Record<string, ProfileDataType>;
 export type ProfileQueryResult = {
