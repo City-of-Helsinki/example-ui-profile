@@ -62,16 +62,13 @@ const BackendDataEditor = (): React.ReactElement => {
           {currentPetName || '(Ei tallennettua nimeä)'}
         </div>
         <TextInput
-          translate=""
           label="Uusi lemmikin nimi:"
           id="petName"
           type="text"
           value={newPetName || ''}
           onChange={e => setNewPetName(e.currentTarget.value)}
         />
-        <Button translate="" onClick={() => save()}>
-          Tallenna
-        </Button>
+        <Button onClick={() => save()}>Tallenna</Button>
         {requestStatus === 'loading' && <p>Tallennetaan...</p>}
       </form>
     </div>

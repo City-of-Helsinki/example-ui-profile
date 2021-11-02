@@ -39,7 +39,7 @@ const AuthenticatedContent = (): React.ReactElement => {
         Jos käytössä on Tunnistamon endPoint, ei asetuksilla ole merkitystä.
       </p>
       <AccessTokenForm options={options} onOptionChange={onOptionChange} />
-      <Button translate="" onClick={onSubmit} disabled={!canLoad}>
+      <Button onClick={onSubmit} disabled={!canLoad}>
         Hae
       </Button>
       {status === 'error' && (

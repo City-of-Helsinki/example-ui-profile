@@ -91,9 +91,7 @@ const Profile = (): React.ReactElement => {
       {resultErrorMessage && (
         <p data-test-id="profile-data-result-error">{resultErrorMessage}</p>
       )}
-      <Button translate="" onClick={reload}>
-        Hae
-      </Button>
+      <Button onClick={reload}>Hae</Button>
     </div>
   );
 };

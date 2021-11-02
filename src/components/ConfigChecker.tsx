@@ -52,14 +52,12 @@ const ConfigChecker = (
                 Olet jo kirjautunut ja kirjautumistapa on {currentConfig.label}
               </p>
               <p>Jos haluat vaihtaa kirjautumistapaa, kirjaudu ensin ulos.</p>
-              <Button translate="" onClick={() => logout()}>
-                Kirjaudu ulos
-              </Button>
+              <Button onClick={() => logout()}>Kirjaudu ulos</Button>
             </div>
           ) : (
             <>
               <p>Nykyinen kirjautumistapa on {currentConfig.label}</p>
-              <Button translate="" onClick={() => switchConfig(swapped)}>
+              <Button onClick={() => switchConfig(swapped)}>
                 Vaihda kirjautumistavaksi {swapped.label}
               </Button>
             </>

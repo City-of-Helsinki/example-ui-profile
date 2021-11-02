@@ -23,12 +23,10 @@ const ConfigSelector = (): React.ReactElement => {
       </p>
       <p>Kirjautumistapaa voi vaihtaa myöhemmin palaamalla tähän näkymään.</p>
       <div className={styles['button-container']}>
-        <Button translate="" onClick={() => changeConfig(config.mvpConfig)}>
+        <Button onClick={() => changeConfig(config.mvpConfig)}>
           {config.mvpConfig.label}
         </Button>
-        <Button
-          translate=""
-          onClick={() => changeConfig(config.plainSuomiFiConfig)}>
+        <Button onClick={() => changeConfig(config.plainSuomiFiConfig)}>
           {capitalize(config.plainSuomiFiConfig.label)}
         </Button>
       </div>
