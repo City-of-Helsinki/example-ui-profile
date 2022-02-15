@@ -24,7 +24,7 @@
     "eslint-config-prettier": "^6.4.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-sonarjs": "^0.5.0",
+    "eslint-plugin-sonarjs": "^0.10.0",
     "graphql": "^15.4.0",
     "graphql.macro": "^1.4.2",
     "hds-core": "1.5.1",
