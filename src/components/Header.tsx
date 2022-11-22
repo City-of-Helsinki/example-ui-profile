@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, MouseEvent } from 'react';
 import { IconSignout, Navigation } from 'hds-react';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useClient } from '../client/hooks';
@@ -151,7 +151,10 @@ const Header = (): React.ReactElement => {
               className={styles['link-to-profile']}
             />
             <Navigation.Item
-              onClick={(): void => client.logout()}
+              onClick={(e: MouseEvent): void => {
+                e.preventDefault();
+                client.logout();
+              }}
               variant="supplementary"
               label="Kirjaudu ulos"
               href="/logout"
