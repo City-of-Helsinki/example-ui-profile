@@ -56,6 +56,6 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
       return undefined;
     },
     fetch: options => Promise.resolve(options),
-    getTokens: () => mockApiAccessTokensHookData.apiTokens
+    getTokenAsObject: () => mockApiAccessTokensHookData.apiTokens
   } as ApiAccessTokenActions;
 }

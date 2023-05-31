@@ -16,19 +16,20 @@ export type ApiAccessTokenActions = {
   fetch: (options: FetchApiTokenOptions) => Promise<JWTPayload | FetchError>;
   getStatus: () => FetchStatus;
   getErrorMessage: () => string | undefined;
-  getTokens: () => JWTPayload | undefined;
+  getTokenAsObject: () => JWTPayload | undefined;
 };
 
 export const ApiAccessTokenActionsContext = createContext<ApiAccessTokenActions | null>(
   null
 );
 
-export function useApiAccessTokens(): ApiAccessTokenActions {
+export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
   const client = useClient();
-  const tokens = client.isAuthenticated() ? client.getApiTokens() : undefined;
-  const hasTokens = tokens && Object.keys(tokens).length;
+  const apiToken = client.isAuthenticated()
+    ? client.getApiToken(audience)
+    : undefined;
   const [apiTokens, setApiTokens] = useState<JWTPayload | undefined>(
-    hasTokens ? tokens : undefined
+    apiToken ? { [audience]: apiToken } : undefined
   );
 
   const resolveStatus = (): FetchStatus => {
@@ -63,12 +64,13 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
     async options => {
       setStatus('loading');
       const result = await client.getApiAccessToken(options);
-      if (result.error) {
+      if ((result as FetchError).error) {
+        const resultAsError = result as FetchError;
         setStatus('error');
         setError(
-          result.message
-            ? new Error(`${result.message} ${result.status}`)
-            : result.error
+          resultAsError.message
+            ? new Error(`${resultAsError.message} ${resultAsError.status}`)
+            : resultAsError.error
         );
       } else {
         setError(undefined);
@@ -86,14 +88,14 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
         return;
       }
       fetchTokens({
-        audience: String(window._env_.REACT_APP_API_BACKEND_AUDIENCE),
+        audience,
         permission: String(window._env_.REACT_APP_API_BACKEND_PERMISSION),
         grantType: String(window._env_.REACT_APP_API_BACKEND_GRANT_TYPE)
       });
     };
 
     autoFetch();
-  }, [fetchTokens, currentStatus]);
+  }, [fetchTokens, currentStatus, audience]);
   return {
     getStatus: () => status,
     getErrorMessage: () => {
@@ -109,6 +111,6 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
       return undefined;
     },
     fetch: options => fetchTokens(options),
-    getTokens: () => apiTokens
+    getTokenAsObject: () => apiTokens
   } as ApiAccessTokenActions;
 }

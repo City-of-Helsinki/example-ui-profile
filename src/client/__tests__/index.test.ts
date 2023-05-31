@@ -51,22 +51,18 @@ describe('Client factory ', () => {
       const storedUser = client.getStoredUser() || {};
       expect(storedUser.name).toMatch(user.name);
     });
-    it('getApiTokens returns stored apiTokens. addApiTokens adds and removeApiToken removes', () => {
-      let apiTokens = client.getApiTokens();
-      expect(
-        typeof apiTokens === 'object' && Object.keys(apiTokens).length === 0
-      ).toBeTruthy();
+    it('getApiToken returns stored apiTokens. addApiTokens adds and removeApiToken removes', () => {
+      expect(client.getApiToken('token1')).toBeUndefined();
       const token1And2 = { token1: 'token1', token2: 'token2' };
       client.addApiTokens(token1And2);
-      expect(client.getApiTokens()).toEqual(token1And2);
       const token3 = { token3: 'token3' };
       client.addApiTokens(token3);
-      expect(client.getApiTokens()).toEqual({ ...token1And2, ...token3 });
+      expect(client.getApiToken('token1')).toBe(token1And2.token1);
+      expect(client.getApiToken('token2')).toBe(token1And2.token2);
+      expect(client.getApiToken('token3')).toBe(token3.token3);
       client.removeApiToken('token2');
-      apiTokens = client.getApiTokens();
-      expect(apiTokens.token1).toBe(token1And2.token1);
-      expect(apiTokens.token2).toBe(undefined);
-      expect(apiTokens.token3).toBe(token3.token3);
+      expect(client.getApiToken('token2')).toBeUndefined();
+      expect(client.getApiToken('token1')).toBe(token1And2.token1);
     });
   });
   describe('isInitialized and isAuthenticated reflect status changes ', () => {
@@ -229,9 +225,12 @@ describe('Client factory ', () => {
       fetchMock.mockIf(fetchConfig.uri, () => Promise.resolve(responseData));
 
       const returnedData = await client.fetchApiToken(fetchConfig);
-      expect(returnedData).toEqual(responseBody);
-      const storedData = client.getApiTokens();
-      expect(storedData).toEqual(returnedData);
+      const assumedTokenData = {
+        [fetchConfig.audience]: responseBody.access_token
+      };
+      expect(returnedData).toEqual(assumedTokenData);
+      const storedData = client.getApiToken(fetchConfig.audience);
+      expect(storedData).toEqual(assumedTokenData[fetchConfig.audience]);
     });
     it('and server side error is handled', async () => {
       const responseData = {

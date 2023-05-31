@@ -1,47 +1,22 @@
-import React, { useState } from 'react';
-import { Button } from 'hds-react';
+import React from 'react';
 import PageContent from '../components/PageContent';
-import AccessTokenForm from '../components/AccessTokenForm';
 import AccessTokenOutput from '../components/AccessTokenOutput';
-import { FetchApiTokenOptions } from '../client';
+import { getClientConfig } from '../client';
 import LoginInfo from '../components/LoginInfo';
 import AuthenticatingInfo from '../components/AuthenticatingInfo';
 import WithAuth from '../client/WithAuth';
 import { useApiAccessTokens } from '../apiAccessTokens/useApiAccessTokens';
 
-const AuthenticatedContent = (): React.ReactElement => {
-  const { getStatus, getTokens, fetch, getErrorMessage } = useApiAccessTokens();
+const TokenForm = ({ audience }: { audience: string }): React.ReactElement => {
+  const { getStatus, getTokenAsObject, getErrorMessage } = useApiAccessTokens(
+    audience
+  );
   const status = getStatus();
   const isLoading = status === 'loading';
-  const canLoad = status === 'loaded' || status === 'ready';
-  const tokens = status === 'loaded' ? getTokens() : undefined;
-  const [options, setOptions]: [
-    FetchApiTokenOptions,
-    (newOptions: FetchApiTokenOptions) => void
-  ] = useState({
-    audience: window._env_.REACT_APP_API_BACKEND_AUDIENCE || '',
-    permission: window._env_.REACT_APP_API_BACKEND_PERMISSION || '',
-    grantType: window._env_.REACT_APP_API_BACKEND_GRANT_TYPE || ''
-  });
-  const onSubmit = async (): Promise<void> => {
-    if (isLoading) {
-      return;
-    }
-    await fetch(options);
-  };
-  const onOptionChange = (newOptions: FetchApiTokenOptions): void => {
-    setOptions(newOptions);
-  };
+  const tokenObj = status === 'loaded' ? getTokenAsObject() : undefined;
+
   return (
-    <PageContent>
-      <h1>API Access tokenin haku</h1>
-      <p>
-        Jos käytössä on Tunnistamon endPoint, ei asetuksilla ole merkitystä.
-      </p>
-      <AccessTokenForm options={options} onOptionChange={onOptionChange} />
-      <Button onClick={onSubmit} disabled={!canLoad}>
-        Hae
-      </Button>
+    <div>
       {status === 'error' && (
         <div>
           <p data-test-id="api-access-token-error">
@@ -54,8 +29,11 @@ const AuthenticatedContent = (): React.ReactElement => {
           <span>Haetaan...</span>
         </div>
       )}
-      <AccessTokenOutput accessToken={tokens} />
-    </PageContent>
+      <AccessTokenOutput
+        accessToken={tokenObj ? tokenObj[audience] : ''}
+        audience={audience}
+      />
+    </div>
   );
 };
 
@@ -64,8 +42,22 @@ const UnauthenticatedContent = (): React.ReactElement => (
     <LoginInfo />
   </PageContent>
 );
+const AuthenticatedContent = (): React.ReactElement => {
+  const config = getClientConfig();
+  return (
+    <PageContent>
+      <h1>API Access tokeneiden haku</h1>
+      <TokenForm audience={config.exampleApiTokenAudience} />
+      <TokenForm audience={config.profileApiTokenAudience} />
+    </PageContent>
+  );
+};
 
 const ApiAccessTokens = (): React.ReactElement =>
-  WithAuth(AuthenticatedContent, UnauthenticatedContent, AuthenticatingInfo);
+  WithAuth(
+    () => <AuthenticatedContent />,
+    UnauthenticatedContent,
+    AuthenticatingInfo
+  );
 
 export default ApiAccessTokens;

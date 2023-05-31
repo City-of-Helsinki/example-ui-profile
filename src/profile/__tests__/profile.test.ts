@@ -26,12 +26,12 @@ import { AnyObject, AnyFunction } from '../../common';
 import { GraphQLClientError } from '../../graphql/graphqlClient';
 
 describe('Profile.ts', () => {
-  configureClient();
+  const config = configureClient();
   const fetchMock: FetchMock = global.fetch;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   let restoreEnv: AnyFunction;
-  const testAudience = 'api-audience';
+  const testAudience = config.profileApiTokenAudience;
   const profileBackendUrl = 'https://localhost/profileGraphql/';
   let lastRequest: Request;
 

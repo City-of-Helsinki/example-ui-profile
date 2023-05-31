@@ -7,11 +7,13 @@ import {
   getFetchMockLastCall
 } from '../../tests/common.test.helper';
 import initMockResponses from '../../tests/backend.test.helper';
+import { configureClient } from '../../client/__mocks__';
 
 describe('Backend.ts ', () => {
   let restoreEnv: AnyFunction;
+  const config = configureClient();
   const fetchMock: FetchMock = global.fetch;
-  const testAudience = 'api-audience';
+  const testAudience = config.exampleApiTokenAudience;
   const backendUrl = 'https://localhost/';
   const responseData = { pet_name: 'petName' };
   const usersAPiToken = 'valid-api-token';

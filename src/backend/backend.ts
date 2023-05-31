@@ -4,7 +4,7 @@ import useAuthorizedApiRequests, {
   AuthorizedRequest,
   AuthorizedApiActions
 } from '../apiAccessTokens/useAuthorizedApiRequests';
-import { JWTPayload } from '../client';
+import { JWTPayload, getClientConfig } from '../client';
 
 // eslint-disable-next-line camelcase
 export type ReturnData = { pet_name: string };
@@ -14,7 +14,7 @@ type Request = AuthorizedRequest<ReturnData, FetchProps>;
 export type BackendActions = AuthorizedApiActions<ReturnData, FetchProps>;
 
 export function getBackendApiToken(apiTokens: JWTPayload): string | undefined {
-  const tokenKey = window._env_.REACT_APP_BACKEND_AUDIENCE;
+  const tokenKey = getClientConfig().exampleApiTokenAudience;
   if (!tokenKey) {
     return undefined;
   }
@@ -28,6 +28,7 @@ export const executeAPIAction: Request = async options => {
     `Bearer ${getBackendApiToken(options.apiTokens)}`
   );
   myHeaders.append('Content-Type', 'application/json');
+  myHeaders.delete('pragma');
   const requestOptions: RequestInit = {
     method: 'GET',
     headers: myHeaders
@@ -61,6 +62,9 @@ export function useBackendWithApiTokens(): AuthorizedApiActions<
   FetchProps
 > {
   const req: Request = useCallback(async props => executeAPIAction(props), []);
-
-  return useAuthorizedApiRequests(req, {});
+  const config = getClientConfig();
+  return useAuthorizedApiRequests(req, {
+    audience: config.exampleApiTokenAudience,
+    autoFetchProps: {}
+  });
 }

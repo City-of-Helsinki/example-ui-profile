@@ -3,17 +3,26 @@ import React from 'react';
 import styles from './styles.module.css';
 
 const AccessTokenOutput = (props: {
-  accessToken?: Record<string, string>;
+  accessToken?: string;
+  audience: string;
 }): React.ReactElement | null => {
-  const { accessToken } = props;
+  const { accessToken, audience } = props;
   if (!accessToken) {
     return null;
   }
   return (
     <div className={styles['access-token-output']}>
-      <h2>Haettu token:</h2>
-      <span className={styles.token} data-test-id="api-access-token-output">
-        {JSON.stringify(accessToken, null, 2)}
+      <h2>Audience</h2>
+      <span
+        className={styles.token}
+        data-test-id={`${audience}-api-access-token-audience`}>
+        {audience}
+      </span>
+      <h2>Token</h2>
+      <span
+        className={styles.token}
+        data-test-id={`${audience}-api-access-token-output`}>
+        {accessToken}
       </span>
     </div>
   );

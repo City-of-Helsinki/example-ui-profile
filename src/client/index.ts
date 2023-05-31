@@ -34,9 +34,9 @@ export type Client = {
   getApiAccessToken: (
     options: FetchApiTokenOptions
   ) => Promise<JWTPayload | FetchError>;
-  getApiTokens: () => JWTPayload;
+  getApiToken: (audience: string) => string | undefined;
   addApiTokens: (newToken: JWTPayload) => JWTPayload;
-  removeApiToken: (name: string) => JWTPayload;
+  removeApiToken: (audience: string) => JWTPayload;
   getUserTokens: () => Record<string, string | undefined> | undefined;
 };
 
@@ -186,7 +186,7 @@ export type ClientFactory = {
   fetchApiToken: (
     options: FetchApiTokenConfiguration
   ) => Promise<JWTPayload | FetchError>;
-  getApiTokens: Client['getApiTokens'];
+  getApiToken: Client['getApiToken'];
   addApiTokens: Client['addApiTokens'];
   removeApiToken: Client['removeApiToken'];
 } & EventHandlers;
@@ -270,13 +270,14 @@ export function createClient(): ClientFactory {
     return true;
   };
 
-  const getApiTokens: ClientFactory['getApiTokens'] = () => tokenStorage;
+  const getApiToken: ClientFactory['getApiToken'] = audience =>
+    tokenStorage[audience];
   const addApiTokens: ClientFactory['addApiTokens'] = newToken => {
     Object.assign(tokenStorage, newToken);
     return tokenStorage;
   };
-  const removeApiToken: ClientFactory['removeApiToken'] = name => {
-    delete tokenStorage[name];
+  const removeApiToken: ClientFactory['removeApiToken'] = audience => {
+    delete tokenStorage[audience];
     return tokenStorage;
   };
 
@@ -321,8 +322,10 @@ export function createClient(): ClientFactory {
       } as FetchError;
     }
     const jwt = json as JWTPayload;
-    addApiTokens(jwt);
-    return jwt;
+    const payload = jwt.access_token || jwt[options.audience];
+    const result = { [options.audience]: payload };
+    addApiTokens(result);
+    return result;
   };
 
   return {
@@ -337,7 +340,7 @@ export function createClient(): ClientFactory {
     isInitialized,
     isAuthenticated,
     fetchApiToken,
-    getApiTokens,
+    getApiToken,
     addApiTokens,
     removeApiToken
   };

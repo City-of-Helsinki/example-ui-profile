@@ -9,7 +9,6 @@ import useAuthorizedApiRequests, {
   AuthorizedApiActions,
   AuthorizedRequest
 } from '../useAuthorizedApiRequests';
-import { ApiAccessTokenProvider } from '../../components/ApiAccessTokenProvider';
 import initMockResponses, {
   MockResponseProps
 } from '../../tests/backend.test.helper';
@@ -21,10 +20,12 @@ import {
 } from '../__mocks__/useApiAccessTokens';
 import { getFetchMockLastCallAuthenticationHeader } from '../../tests/common.test.helper';
 import { setEnv, mockApiTokenResponse } from '../../tests/client.test.helper';
+import { configureClient } from '../../client/__mocks__';
 
 type TestProps = {
   autoFetchProp: boolean;
   data?: string;
+  audience?: string;
 };
 type TestResponseData = {
   something: boolean;
@@ -41,7 +42,8 @@ describe('useAuthorizedApiRequests hook ', () => {
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
   const fetchMock: FetchMock = global.fetch;
-  const testAudience = 'test-audience';
+  const config = configureClient();
+  const testAudience = config.profileApiTokenAudience;
   const noDataText = 'NO_DATA';
   const requestUrl = 'http://localhost/';
   const responseData: TestResponseData = { something: true };
@@ -69,9 +71,17 @@ describe('useAuthorizedApiRequests hook ', () => {
     authorizedApiActions = useAuthorizedApiRequests<
       TestResponseData,
       TestProps
-    >(req, autoFetch ? { data: { autoFetchProp: true } } : undefined);
+    >(
+      req,
+      autoFetch
+        ? {
+            autoFetchProps: { data: { autoFetchProp: true } },
+            audience: testAudience
+          }
+        : { audience: testAudience }
+    );
     const data = authorizedApiActions.getData();
-    const tokens = authorizedApiActions.getTokens();
+    const tokens = authorizedApiActions.getTokenAsObject();
     const [, setNumber] = useState<number>(0);
     forceUpdate = setNumber;
     return (
@@ -87,11 +97,7 @@ describe('useAuthorizedApiRequests hook ', () => {
     );
   };
 
-  const TestWrapper = (): React.ReactElement => (
-    <ApiAccessTokenProvider>
-      <HookTester />
-    </ApiAccessTokenProvider>
-  );
+  const TestWrapper = (): React.ReactElement => <HookTester />;
 
   const setUpTest = async (
     props: {

@@ -1,12 +1,16 @@
-import { useState, useContext, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import to from 'await-to-js';
 
-import { ApiAccessTokenContext } from '../components/ApiAccessTokenProvider';
-import { FetchStatus } from './useApiAccessTokens';
+import { FetchStatus, useApiAccessTokens } from './useApiAccessTokens';
 import { JWTPayload } from '../client';
 
 export type RequestProps<P> = {
   data?: P;
+};
+
+export type Props<P> = {
+  autoFetchProps?: RequestProps<P>;
+  audience: string;
 };
 
 export type AuthorizedRequestProps<P> = {
@@ -24,26 +28,24 @@ export type AuthorizedApiActions<R, P> = {
   getRequestStatus: () => FetchStatus;
   getApiTokenError: () => string | undefined;
   getRequestError: () => string | undefined;
-  request: (props?: RequestProps<P>) => Promise<R | undefined>;
+  request: (
+    props?: Omit<RequestProps<P>, 'audience'>
+  ) => Promise<R | undefined>;
   getData: () => R | undefined;
-  getTokens: () => JWTPayload | undefined;
+  getTokenAsObject: () => JWTPayload | undefined;
   clear: () => void;
 };
 
 export default function useAuthorizedApiRequests<R, P>(
   authorizedRequest: AuthorizedRequest<R, P>,
-  autoFetchProps?: RequestProps<P>
+  props: Props<P>
 ): AuthorizedApiActions<R, P> {
-  const actions = useContext(ApiAccessTokenContext);
-  if (!actions) {
-    throw new Error(
-      'ApiAccessTokenActions not provided from ApiAccessTokenContext. Provide context in React Components with ApiAccessTokenProvider.'
-    );
-  }
+  const { autoFetchProps, audience } = props;
+  const actions = useApiAccessTokens(audience);
   const {
     getStatus: getApiAccessTokenStatus,
     getErrorMessage: getApiTokenErrorMessage,
-    getTokens
+    getTokenAsObject
   } = actions;
   const [requestStatus, setRequestStatus] = useState<FetchStatus>('waiting');
   const [result, setResult] = useState<R>();
@@ -81,10 +83,13 @@ export default function useAuthorizedApiRequests<R, P>(
   }
 
   const requestWrapper: AuthorizedApiActions<R, P>['request'] = useCallback(
-    async props => {
+    async wrapperProps => {
       setRequestStatus('loading');
       const [err, data] = await to<R | undefined, Error>(
-        authorizedRequest({ ...props, apiTokens: getTokens() as JWTPayload })
+        authorizedRequest({
+          ...wrapperProps,
+          apiTokens: getTokenAsObject() as JWTPayload
+        })
       );
       if (err) {
         setRequestStatus('error');
@@ -97,7 +102,7 @@ export default function useAuthorizedApiRequests<R, P>(
       setError(undefined);
       return data as R;
     },
-    [authorizedRequest, getTokens]
+    [authorizedRequest, getTokenAsObject]
   );
 
   useEffect(() => {
@@ -117,7 +122,7 @@ export default function useAuthorizedApiRequests<R, P>(
     getRequestStatus: () => requestStatus,
     getApiTokenError: () => getApiTokenErrorMessage(),
     getData: () => result,
-    getTokens: () => getTokens(),
+    getTokenAsObject: () => getTokenAsObject(),
     getRequestError: () => {
       if (!error) {
         return undefined;
@@ -134,12 +139,12 @@ export default function useAuthorizedApiRequests<R, P>(
       setResult(undefined);
       setError(undefined);
     },
-    request: props => {
+    request: requestProps => {
       if (getApiAccessTokenStatus() !== 'loaded') {
         setError(new Error('Api tokens are not fetched.'));
         return Promise.resolve({} as R);
       }
-      return requestWrapper(props);
+      return requestWrapper(requestProps);
     }
   };
 }
