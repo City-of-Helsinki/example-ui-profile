@@ -36,13 +36,13 @@ function App(): React.ReactElement {
                 <Route path={[`${plainSuomiFiPath}/userinfo`]} exact>
                   <PlainSuomiFiUserInfo />
                 </Route>
-                <Route path={[`${mvpPath}/apiAccessTokens`]} exact>
+                <Route path={[`/:anyPath/apiAccessTokens`]} exact>
                   <ApiAccessTokens />
                 </Route>
-                <Route path={[`${mvpPath}/backend`]} exact>
+                <Route path={[`/:anyPath/backend`]} exact>
                   <BackendData />
                 </Route>
-                <Route path={[`${mvpPath}/profile`]} exact>
+                <Route path={[`/:anyPath/profile`]} exact>
                   <ProfilePage />
                 </Route>
                 <Route path={['/authError']} exact>
