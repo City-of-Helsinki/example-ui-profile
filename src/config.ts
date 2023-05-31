@@ -26,6 +26,11 @@ function createConfigFromEnv(
   const realm = String(window._env_[`REACT_APP_${source}_REALM`]);
   const tokenExchangePath =
     window._env_[`REACT_APP_${source}_TOKEN_EXCHANGE_PATH`];
+  const exampleApiTokenAudience =
+    window._env_[`REACT_APP_${source}_EXAMPLE_API_TOKEN_AUDIENCE`];
+  const profileApiTokenAudience =
+    window._env_[`REACT_APP_${source}_PROFILE_API_TOKEN_AUDIENCE`];
+  const scope = window._env_[`REACT_APP_${source}_SCOPE`];
   return {
     realm,
     url,
@@ -35,7 +40,7 @@ function createConfigFromEnv(
     logoutPath: window._env_[`REACT_APP_${source}_LOGOUT_PATH`] || '/',
     silentAuthPath: window._env_[`REACT_APP_${source}_SILENT_AUTH_PATH`],
     responseType: window._env_[`REACT_APP_${source}_RESPONSE_TYPE`],
-    scope: window._env_[`REACT_APP_${source}_SCOPE`],
+    scope,
     autoSignIn: envValueToBoolean(
       window._env_[`REACT_APP_${source}_AUTO_SIGN_IN`],
       true
@@ -49,14 +54,16 @@ function createConfigFromEnv(
       false
     ),
     tokenExchangePath,
-    hasApiTokenSupport: Boolean(tokenExchangePath)
+    hasApiTokenSupport: true,
+    exampleApiTokenAudience,
+    profileApiTokenAudience
   };
 }
 
 const mvpConfig = {
   ...createConfigFromEnv('OIDC'),
   path: '/helsinkimvp',
-  label: 'Helsinki-profiili MVP'
+  label: 'Kirjaudu Tunnistamolla'
 } as ClientConfig;
 
 const uiConfig: { profileUIUrl: string } = {
@@ -66,7 +73,7 @@ const uiConfig: { profileUIUrl: string } = {
 const plainSuomiFiConfig = {
   ...createConfigFromEnv('PLAIN_SUOMIFI'),
   path: '/plainsuomifi',
-  label: 'pelkkä Suomi.fi autentikaatio'
+  label: 'Kirjaudu Keycloakilla'
 } as ClientConfig;
 
 const isCallbackUrl = (route: string): boolean =>

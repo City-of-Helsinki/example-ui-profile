@@ -157,6 +157,14 @@ export interface ClientConfig {
    * label of this config shown in the UI
    */
   label: string;
+  /**
+   * api token audience for example API
+   */
+  exampleApiTokenAudience: string;
+  /**
+   * api token audience for profile API
+   */
+  profileApiTokenAudience: string;
 }
 
 type EventHandlers = {
