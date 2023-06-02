@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PageContent from '../components/PageContent';
 import AccessTokenOutput from '../components/AccessTokenOutput';
 import { getClientConfig } from '../client';
@@ -7,14 +7,28 @@ import AuthenticatingInfo from '../components/AuthenticatingInfo';
 import WithAuth from '../client/WithAuth';
 import { useApiAccessTokens } from '../apiAccessTokens/useApiAccessTokens';
 
-const TokenForm = ({ audience }: { audience: string }): React.ReactElement => {
+const TokenForm = ({
+  audience,
+  onCompletion
+}: {
+  audience: string;
+  onCompletion: (audience: string) => void;
+}): React.ReactElement => {
   const { getStatus, getTokenAsObject, getErrorMessage } = useApiAccessTokens(
     audience
   );
+  const completionReportedRef = useRef(false);
   const status = getStatus();
   const isLoading = status === 'loading';
   const tokenObj = status === 'loaded' ? getTokenAsObject() : undefined;
+  const isComplete = status === 'loaded' || status === 'error';
 
+  useEffect(() => {
+    if (isComplete && !completionReportedRef.current) {
+      onCompletion(audience);
+      completionReportedRef.current = true;
+    }
+  }, [isComplete, audience, onCompletion]);
   return (
     <div>
       {status === 'error' && (
@@ -26,7 +40,7 @@ const TokenForm = ({ audience }: { audience: string }): React.ReactElement => {
       )}
       {isLoading && (
         <div>
-          <span>Haetaan...</span>
+          <span>Haetaan api tokenia...</span>
         </div>
       )}
       <AccessTokenOutput
@@ -34,6 +48,39 @@ const TokenForm = ({ audience }: { audience: string }): React.ReactElement => {
         audience={audience}
       />
     </div>
+  );
+};
+
+const TokenFetcher = ({
+  audiences
+}: {
+  audiences: string[];
+}): React.ReactElement => {
+  const [readyCount, updateReadyCount] = useState(0);
+  const onCompletion = useCallback(
+    audience => {
+      const index = audiences.findIndex(aud => aud === audience);
+      if (index > -1) {
+        updateReadyCount(n => n + 1);
+      }
+    },
+    [audiences]
+  );
+  return (
+    <>
+      {audiences.map((audience, index) => {
+        if (index <= readyCount) {
+          return (
+            <TokenForm
+              key={audience}
+              audience={audience}
+              onCompletion={onCompletion}
+            />
+          );
+        }
+        return null;
+      })}
+    </>
   );
 };
 
@@ -47,8 +94,12 @@ const AuthenticatedContent = (): React.ReactElement => {
   return (
     <PageContent>
       <h1>API Access tokeneiden haku</h1>
-      <TokenForm audience={config.exampleApiTokenAudience} />
-      <TokenForm audience={config.profileApiTokenAudience} />
+      <TokenFetcher
+        audiences={[
+          config.exampleApiTokenAudience,
+          config.profileApiTokenAudience
+        ]}
+      />
     </PageContent>
   );
 };
