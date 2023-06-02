@@ -31,6 +31,9 @@ function createConfigFromEnv(
   const profileApiTokenAudience =
     window._env_[`REACT_APP_${source}_PROFILE_API_TOKEN_AUDIENCE`];
   const scope = window._env_[`REACT_APP_${source}_SCOPE`];
+  const apiGrantType = window._env_[`REACT_APP_${source}_API_TOKEN_GRANT_TYPE`];
+  const apiPermission =
+    window._env_[`REACT_APP_${source}_API_TOKEN_PERMISSION`];
   return {
     realm,
     url,
@@ -56,7 +59,9 @@ function createConfigFromEnv(
     tokenExchangePath,
     hasApiTokenSupport: true,
     exampleApiTokenAudience,
-    profileApiTokenAudience
+    profileApiTokenAudience,
+    apiGrantType,
+    apiPermission
   };
 }
 

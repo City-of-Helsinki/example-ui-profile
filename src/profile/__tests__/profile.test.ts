@@ -54,7 +54,6 @@ describe('Profile.ts', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience,
       REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
     });
     fetchMock.enableMocks();

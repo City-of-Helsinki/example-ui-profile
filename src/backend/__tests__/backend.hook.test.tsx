@@ -24,8 +24,7 @@ jest.mock('../../apiAccessTokens/useApiAccessTokens');
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
   const fetchMock: FetchMock = global.fetch;
-  const config = configureClient();
-  const testAudience = config.exampleApiTokenAudience;
+  configureClient();
   const backendUrl = 'https://localhost/';
   const validResponseData = {
     pet_name: 'petName'
@@ -84,7 +83,6 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_BACKEND_AUDIENCE: testAudience,
       REACT_APP_BACKEND_URL: backendUrl
     });
     fetchMock.enableMocks();

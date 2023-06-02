@@ -31,8 +31,6 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   const fetchMock: FetchMock = global.fetch;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
-  const config = configureClient();
-  const testAudience = config.profileApiTokenAudience;
   const profileBackendUrl = 'https://localhost/profileGraphql/';
   let profileActions: ProfileActions;
   let dom: ReactWrapper;
@@ -80,7 +78,6 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience,
       REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
     });
     fetchMock.enableMocks();

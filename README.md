@@ -1,6 +1,6 @@
 # Example-profile-ui
 
-Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Helsinki-Profiili MVP and plain Suomi.fi. User chooses one on the index page.
+Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Helsinki-Profiili MVP and Helsinki-tunnistus. User chooses one on the index page.
 
 App uses [oidc-react.js](https://github.com/IdentityModel/oidc-client-js/wiki) for all calls to the OIDC provider. Library is wrapped with "client" (client/index.ts) to unify connections to Tunnistamo, Keycloak server and Profiili API.
 
@@ -23,7 +23,7 @@ Tunnistamo does not support silent login checks (it uses only sessionStorage) so
 Config can also be overridden for command line:
 
 ```bash
-REACT_APP_OIDC_URL=https://foo.bar yarn start
+REACT_APP_OIDC_URL="https://foo.bar"
 ```
 
 ### Environment variables
@@ -46,9 +46,9 @@ REACT_APP_OIDC_SCOPE="profile"
 REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 ```
 
-### Config for plain Suomi.fi
+### Config for Helsinki-tunnistus
 
-Settings when using plain Suomi.fi authentication:
+Settings when using Helsinki-tunnistus authentication:
 
 ```bash
 REACT_APP_PLAIN_SUOMIFI_URL="<SERVER_URL>/auth"
@@ -59,20 +59,63 @@ REACT_APP_PLAIN_SUOMIFI_CLIENT_ID="exampleapp-ui"
 
 Keys are the same, but with "\_OIDC\_" replaced by "\_PLAIN_SUOMIFI\_".
 
-### Config for getting Profile data (Helsinki-Profiili MVP only)
+### Config for getting Profile data
+
+#### Tunnistamo
 
 Use same config as above with Tunnistamo and add
 
 ```bash
 REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 REACT_APP_OIDC_SCOPE="openid profile email https://api.hel.fi/auth/helsinkiprofile"
+REACT_APP_OIDC_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
 ```
 
-Profile BE url and audience are configured in main .env and there is no need to change them
+Tunnistamo does not use these, so left them empty:
+
+```bash
+REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
+REACT_APP_OIDC_API_TOKEN_PERMISSION=""
+```
+
+#### Helsinki-tunnistus
+
+Use same config as above with Helsinki-tunnistus and add
+
+```bash
+REACT_APP_PLAIN_SUOMIFI_CLIENT_ID="exampleapp-ui"
+REACT_APP_PLAIN_SUOMIFI_SCOPE="openid profile email"
+REACT_APP_PLAIN_SUOMIFI_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
+REACT_APP_PLAIN_SUOMIFI_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
+REACT_APP_PLAIN_SUOMIFI_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
+```
+
+### Config for getting Example backend data
+
+#### Tunnistamo
+
+When getting api tokens, the Tunnistamo request does not need any props. But audiences are needed when getting the correct token in UI. Note that `REACT_APP_OIDC_SCOPE` must have scopes for the api token audiences when using Tunnistamo.
+
+```bash
+REACT_APP_OIDC_EXAMPLE_API_TOKEN_AUDIENCE="api token audience in Tunnistamo"
+```
+
+Tunnistamo does not use these, so left them empty:
+
+```bash
+REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
+REACT_APP_OIDC_API_TOKEN_PERMISSION=""
+```
+
+#### Helsinki-tunnistus
+
+This server uses the audience, grant type and permission.
 
 ```bash
 REACT_APP_PROFILE_BACKEND_URL="<PROFILE_API_SERVER_URL>/graphql/"
-REACT_APP_PROFILE_AUDIENCE="https://api.hel.fi/auth/helsinkiprofile"
+REACT_APP_PLAIN_SUOMIFI_PROFILE_API_TOKEN_AUDIENCE="api token audience in Helsinki-Tunnistus"
+REACT_APP__PLAIN_SUOMIFI_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
+REACT_APP_PLAIN_SUOMIFI_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
 ```
 
 ## Docker

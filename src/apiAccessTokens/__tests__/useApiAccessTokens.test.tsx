@@ -11,10 +11,9 @@ import {
   mockApiTokenResponse,
   logoutUser,
   clearApiTokens,
-  createApiTokenFetchPayload,
-  setEnv
+  createApiTokenFetchPayload
 } from '../../tests/client.test.helper';
-import { AnyFunction, AnyObject } from '../../common';
+import { AnyObject } from '../../common';
 import {
   useApiAccessTokens,
   ApiAccessTokenActions,
@@ -30,7 +29,6 @@ describe('useApiAccessTokens hook ', () => {
   const testAudience = config.profileApiTokenAudience;
   let apiTokenActions: ApiAccessTokenActions;
   let dom: ReactWrapper;
-  let restoreEnv: AnyFunction;
 
   const HookTester = (): React.ReactElement => {
     apiTokenActions = useApiAccessTokens(testAudience);
@@ -52,14 +50,10 @@ describe('useApiAccessTokens hook ', () => {
   };
 
   beforeAll(async () => {
-    restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience
-    });
     fetchMock.enableMocks();
     await client.init();
   });
   afterAll(() => {
-    restoreEnv();
     fetchMock.disableMocks();
   });
   afterEach(() => {

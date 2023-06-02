@@ -26,7 +26,6 @@ describe('Backend.ts ', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_BACKEND_AUDIENCE: testAudience,
       REACT_APP_BACKEND_URL: backendUrl
     });
     fetchMock.enableMocks();

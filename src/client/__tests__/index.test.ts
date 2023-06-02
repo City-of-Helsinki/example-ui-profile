@@ -11,7 +11,8 @@ import {
   FetchApiTokenConfiguration,
   getTokenUri,
   getClientConfig,
-  FetchError
+  FetchError,
+  JWTPayload
 } from '../index';
 import { configureClient } from '../__mocks__';
 import { AnyFunction, AnyObject } from '../../common';
@@ -19,7 +20,7 @@ import { AnyFunction, AnyObject } from '../../common';
 describe('Client factory ', () => {
   let client: ClientFactory;
   const fetchMock: FetchMock = global.fetch;
-  configureClient();
+  const config = configureClient();
   beforeEach(() => {
     client = createClient();
   });
@@ -266,6 +267,101 @@ describe('Client factory ', () => {
       if (response.error) {
         expect(response.error.message).toBeDefined();
       }
+    });
+    it('if apiToken response includes multiple tokens, all tokens are stored and not fetched again.', async () => {
+      const responseBody = {
+        [config.exampleApiTokenAudience]: 'exampleApiToken',
+        [config.profileApiTokenAudience]: 'profileApiToken'
+      };
+      const responseData = {
+        status: 200,
+        body: JSON.stringify(responseBody)
+      };
+      fetchMock.mockIf(fetchConfig.uri, () => Promise.resolve(responseData));
+
+      const exampleTokenConfig = {
+        ...fetchConfig,
+        audience: config.exampleApiTokenAudience
+      };
+      const exampleApiTokens = await client.fetchApiToken(exampleTokenConfig);
+
+      const assumedTokenData = {
+        [exampleTokenConfig.audience]: responseBody[exampleTokenConfig.audience]
+      };
+
+      expect(exampleApiTokens).toEqual(assumedTokenData);
+      const storedData = client.getApiToken(exampleTokenConfig.audience);
+      expect(storedData).toEqual(assumedTokenData[exampleTokenConfig.audience]);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      const profileTokenConfig = {
+        ...fetchConfig,
+        audience: config.profileApiTokenAudience
+      };
+
+      const profileApiTokens = await client.fetchApiToken(profileTokenConfig);
+      expect(profileApiTokens).toEqual({
+        [profileTokenConfig.audience]: responseBody[profileTokenConfig.audience]
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+    it('Api tokens can also be an object with an "access_token" property. In this case there cannot be multiple tokens in the response.', async () => {
+      const exampleApiTokenBody = {
+        access_token: 'exampleApiToken'
+      };
+      const exampleApiTokenResponse = {
+        status: 200,
+        body: JSON.stringify(exampleApiTokenBody)
+      };
+      fetchMock.mockIf(fetchConfig.uri, () =>
+        Promise.resolve(exampleApiTokenResponse)
+      );
+
+      const exampleTokenConfig = {
+        ...fetchConfig,
+        audience: config.exampleApiTokenAudience
+      };
+      const exampleApiTokens = (await client.fetchApiToken(
+        exampleTokenConfig
+      )) as JWTPayload;
+
+      expect(exampleApiTokens[exampleTokenConfig.audience]).toEqual(
+        exampleApiTokenBody.access_token
+      );
+      expect(client.getApiToken(exampleTokenConfig.audience)).toEqual(
+        exampleApiTokenBody.access_token
+      );
+
+      // get another token
+      const profileApiTokenBody = {
+        access_token: 'profileApiToken'
+      };
+      const profileApiTokenResponse = {
+        status: 200,
+        body: JSON.stringify(profileApiTokenBody)
+      };
+      fetchMock.mockIf(fetchConfig.uri, () =>
+        Promise.resolve(profileApiTokenResponse)
+      );
+
+      const profileTokenConfig = {
+        ...fetchConfig,
+        audience: config.profileApiTokenAudience
+      };
+      expect(client.getApiToken(profileTokenConfig.audience)).toBeUndefined();
+      const profileApiTokens = (await client.fetchApiToken(
+        profileTokenConfig
+      )) as JWTPayload;
+
+      expect(profileApiTokens[profileTokenConfig.audience]).toEqual(
+        profileApiTokenBody.access_token
+      );
+      expect(client.getApiToken(profileTokenConfig.audience)).toEqual(
+        profileApiTokenBody.access_token
+      );
+      // previous apiToken still exists
+      expect(client.getApiToken(exampleTokenConfig.audience)).toEqual(
+        exampleApiTokenBody.access_token
+      );
     });
   });
 });

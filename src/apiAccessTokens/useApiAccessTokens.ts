@@ -1,5 +1,10 @@
 import { useEffect, useState, useCallback, createContext } from 'react';
-import { FetchApiTokenOptions, FetchError, JWTPayload } from '../client/index';
+import {
+  FetchApiTokenOptions,
+  FetchError,
+  JWTPayload,
+  getClientConfig
+} from '../client/index';
 import { useClient } from '../client/hooks';
 
 export type FetchStatus =
@@ -25,6 +30,7 @@ export const ApiAccessTokenActionsContext = createContext<ApiAccessTokenActions 
 
 export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
   const client = useClient();
+  const config = getClientConfig();
   const apiToken = client.isAuthenticated()
     ? client.getApiToken(audience)
     : undefined;
@@ -87,15 +93,18 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       if (currentStatus !== 'ready') {
         return;
       }
-      fetchTokens({
-        audience,
-        permission: String(window._env_.REACT_APP_API_BACKEND_PERMISSION),
-        grantType: String(window._env_.REACT_APP_API_BACKEND_GRANT_TYPE)
-      });
+      const props = config.apiPermission
+        ? {
+            audience,
+            permission: String(config.apiPermission),
+            grantType: String(config.apiGrantType)
+          }
+        : { audience };
+      fetchTokens(props);
     };
 
     autoFetch();
-  }, [fetchTokens, currentStatus, audience]);
+  }, [fetchTokens, currentStatus, audience, config]);
   return {
     getStatus: () => status,
     getErrorMessage: () => {
