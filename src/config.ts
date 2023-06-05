@@ -57,7 +57,6 @@ function createConfigFromEnv(
       false
     ),
     tokenExchangePath,
-    hasApiTokenSupport: true,
     exampleApiTokenAudience,
     profileApiTokenAudience,
     apiGrantType,
@@ -65,7 +64,7 @@ function createConfigFromEnv(
   };
 }
 
-const mvpConfig = {
+const tunnistamoConfig = {
   ...createConfigFromEnv('OIDC'),
   path: '/tunnistamo',
   label: 'Tunnistamo'
@@ -75,29 +74,33 @@ const uiConfig: { profileUIUrl: string } = {
   profileUIUrl: String(window._env_.REACT_APP_PROFILE_UI_URL)
 };
 
-const plainSuomiFiConfig = {
+const keycloakConfig = {
   ...createConfigFromEnv('KEYCLOAK'),
   path: '/helsinkitunnistus',
   label: 'Helsinki-Tunnistus'
 } as ClientConfig;
 
 const isCallbackUrl = (route: string): boolean =>
-  route === mvpConfig.callbackPath || route === plainSuomiFiConfig.callbackPath;
+  route === tunnistamoConfig.callbackPath ||
+  route === keycloakConfig.callbackPath;
 
 const getConfigFromRoute = (route: string): ClientConfig | undefined => {
   if (route.length < 2) {
     return undefined;
   }
-  if (route.includes(mvpConfig.path) || route === mvpConfig.callbackPath) {
-    return mvpConfig;
+  if (
+    route.includes(tunnistamoConfig.path) ||
+    route === tunnistamoConfig.callbackPath
+  ) {
+    return tunnistamoConfig;
   }
-  return plainSuomiFiConfig;
+  return keycloakConfig;
 };
 
 export default {
-  mvpConfig,
+  tunnistamoConfig,
   ui: uiConfig,
-  plainSuomiFiConfig,
+  keycloakConfig,
   isCallbackUrl,
   getConfigFromRoute
 };

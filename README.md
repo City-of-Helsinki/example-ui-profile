@@ -1,6 +1,6 @@
 # Example-profile-ui
 
-Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Helsinki-Profiili MVP and Helsinki-tunnistus. User chooses one on the index page.
+Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Tunnistamo and Helsinki-tunnistus. User chooses one on the index page.
 
 App uses [oidc-react.js](https://github.com/IdentityModel/oidc-client-js/wiki) for all calls to the OIDC provider. Library is wrapped with "client" (client/index.ts) to unify connections to Tunnistamo, Keycloak server and Profiili API.
 
@@ -10,13 +10,13 @@ Included in this demo app:
 - hooks for easy usage with React
 - redux store listening a client
 - HOC component listening a client and showing different content for authorized and unauthorized users.
-- getting API token and using it to get Profile (only when using Helsinki-Profiili MVP ).
+- getting API token and using it to get Profile
 
 Client dispatches events and trigger changes which then trigger re-rendering of the components using the client.
 
 ## Config
 
-Configs are in .env -files. Default endpoint for Helsinki-Profiili is Tunnistamo. For Suomi.fi authentication, it is plain Keycloak.
+Configs are in .env -files.
 
 Tunnistamo does not support silent login checks (it uses only sessionStorage) so REACT_APP_OIDC_AUTO_SIGN_IN must be 'false'. It renews access tokens so REACT_APP_OIDC_SILENT_AUTH_PATH must be changed to '/' to prevent errors for unknown redirect url.
 
@@ -35,9 +35,9 @@ actual used variables when running the app. App is not using CRA's default `proc
 Note that running built application locally you need to generate also `public/env-config.js` file. It can be done with
 `yarn update-runtime-env`. By default it's generated for development environment if no `NODE_ENV` is set.
 
-### Config for Helsinki-Profiili MVP
+### Config for Tunnistamo
 
-Settings when using Helsinki-Profiili MVP authentication:
+Settings when using Tunnistamo authentication:
 
 ```bash
 REACT_APP_OIDC_URL="<SERVER_URL>/auth"

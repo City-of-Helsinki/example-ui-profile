@@ -150,10 +150,6 @@ export interface ClientConfig {
    */
   path: string;
   /**
-   * does the server, this config is for, provide api tokens
-   */
-  hasApiTokenSupport: boolean;
-  /**
    * label of this config shown in the UI
    */
   label: string;

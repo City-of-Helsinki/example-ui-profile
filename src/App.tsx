@@ -10,15 +10,15 @@ import config from './config';
 import Index from './pages/Index';
 import Tokens from './pages/Tokens';
 import Header from './components/Header';
-import PlainSuomiFiUserInfo from './pages/PlainSuomiFiUserInfo';
+import UserInfo from './pages/UserInfo';
 import ApiAccessTokens from './pages/ApiAccessTokens';
 import ProfilePage from './pages/ProfilePage';
 import BackendData from './pages/BackendData';
 import LogOut from './pages/LogOut';
 
 function App(): React.ReactElement {
-  const plainSuomiFiPath = config.plainSuomiFiConfig.path;
-  const mvpPath = config.mvpConfig.path;
+  const keycloakPath = config.keycloakConfig.path;
+  const tunnistamoPath = config.tunnistamoConfig.path;
   return (
     <ConfigChecker>
       <HandleCallback>
@@ -27,14 +27,14 @@ function App(): React.ReactElement {
             <PageContainer>
               <Header />
               <Switch>
-                <Route path={[plainSuomiFiPath, mvpPath]} exact>
+                <Route path={[keycloakPath, tunnistamoPath]} exact>
                   <Index />
                 </Route>
                 <Route path={['/:anyPath/userTokens']} exact>
                   <Tokens />
                 </Route>
-                <Route path={[`${plainSuomiFiPath}/userinfo`]} exact>
-                  <PlainSuomiFiUserInfo />
+                <Route path={[`/:anyPath/userinfo`]} exact>
+                  <UserInfo />
                 </Route>
                 <Route path={[`/:anyPath/apiAccessTokens`]} exact>
                   <ApiAccessTokens />

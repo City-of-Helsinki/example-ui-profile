@@ -38,9 +38,7 @@ const ClientGetUser = (): React.ReactElement => {
   return (
     <div>
       <h2>
-        {status === 'error'
-          ? 'Profiilin lataus epäonnistui'
-          : 'Profiilin tiedot'}
+        {status === 'error' ? 'User infon lataus epäonnistui' : 'User info'}
       </h2>
       <span className={styles.token}>
         {profileDataOrError && (

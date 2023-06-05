@@ -28,11 +28,11 @@ const ConfigSelector = (): React.ReactElement => {
       </p>
       <p>Kirjautumistapaa voi vaihtaa myöhemmin palaamalla tähän näkymään.</p>
       <div className={styles['button-container']}>
-        <Button onClick={() => changeConfig(config.mvpConfig)}>
-          Kirjaudu {config.mvpConfig.label}-palvelussa
+        <Button onClick={() => changeConfig(config.tunnistamoConfig)}>
+          Kirjaudu {config.tunnistamoConfig.label}-palvelussa
         </Button>
-        <Button onClick={() => changeConfig(config.plainSuomiFiConfig)}>
-          Kirjaudu {capitalize(config.plainSuomiFiConfig.label)} -palvelussa
+        <Button onClick={() => changeConfig(config.keycloakConfig)}>
+          Kirjaudu {capitalize(config.keycloakConfig.label)} -palvelussa
         </Button>
       </div>
     </PageContent>
