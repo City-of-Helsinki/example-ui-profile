@@ -1,6 +1,6 @@
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { Button } from 'hds-react';
+import { Button, Logo } from 'hds-react';
 
 import PageContent from '../components/PageContent';
 import config from '../config';
@@ -16,18 +16,23 @@ const ConfigSelector = (): React.ReactElement => {
     `${str.charAt(0).toUpperCase()}${str.substr(1)}`;
   return (
     <PageContent>
+      <Logo size="medium" />
       <h1>Valitse kirjautumistapa</h1>
       <p>
-        Voit kirjautua Helsinki-profiili MVP:n tai pelkän Suomi.fi:n kautta.
+        Tällä sivulla esitellään Helsinki-profiilin palvelukokonaisuutta
+        esimerkkisovelluksen (Example App) avulla.
+      </p>
+      <p>
+        Voit kirjautua Tunnistamo ja Helsinki Tunnistus -palveluiden kautta.
         Valitse ensin kumpaa käytät ja voit sen jälkeen kirjautua sisään.
       </p>
       <p>Kirjautumistapaa voi vaihtaa myöhemmin palaamalla tähän näkymään.</p>
       <div className={styles['button-container']}>
         <Button onClick={() => changeConfig(config.mvpConfig)}>
-          {config.mvpConfig.label}
+          Kirjaudu {config.mvpConfig.label}-palvelussa
         </Button>
         <Button onClick={() => changeConfig(config.plainSuomiFiConfig)}>
-          {capitalize(config.plainSuomiFiConfig.label)}
+          Kirjaudu {capitalize(config.plainSuomiFiConfig.label)} -palvelussa
         </Button>
       </div>
     </PageContent>

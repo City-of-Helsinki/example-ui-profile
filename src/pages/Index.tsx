@@ -16,7 +16,8 @@ const Index = (): React.ReactElement => {
         <>
           <h1>Client-demo </h1>
           <p>
-            Kirjautumistapasi on <strong>{currentConfig.label}.</strong>
+            Olet kirjautumassa{' '}
+            <strong>{currentConfig.label} -palvelun kautta.</strong>
           </p>
           <p>
             Tässä demossa näytetään kirjautumisikkuna ja komponentteja, jotka

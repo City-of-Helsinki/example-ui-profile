@@ -68,7 +68,7 @@ function createConfigFromEnv(
 const mvpConfig = {
   ...createConfigFromEnv('OIDC'),
   path: '/helsinkimvp',
-  label: 'Kirjaudu Tunnistamolla'
+  label: 'Tunnistamo'
 } as ClientConfig;
 
 const uiConfig: { profileUIUrl: string } = {
@@ -78,7 +78,7 @@ const uiConfig: { profileUIUrl: string } = {
 const plainSuomiFiConfig = {
   ...createConfigFromEnv('PLAIN_SUOMIFI'),
   path: '/plainsuomifi',
-  label: 'Kirjaudu Keycloakilla'
+  label: 'Helsinki-Tunnistus'
 } as ClientConfig;
 
 const isCallbackUrl = (route: string): boolean =>
