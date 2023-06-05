@@ -51,13 +51,13 @@ REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 Settings when using Helsinki-tunnistus authentication:
 
 ```bash
-REACT_APP_PLAIN_SUOMIFI_URL="<SERVER_URL>/auth"
-REACT_APP_PLAIN_SUOMIFI_REALM="helsinki-tunnistus"
-REACT_APP_PLAIN_SUOMIFI_SCOPE="profile"
-REACT_APP_PLAIN_SUOMIFI_CLIENT_ID="exampleapp-ui"
+REACT_APP_KEYCLOAK_URL="<SERVER_URL>/auth"
+REACT_APP_KEYCLOAK_REALM="helsinki-tunnistus"
+REACT_APP_KEYCLOAK_SCOPE="profile"
+REACT_APP_KEYCLOAK_CLIENT_ID="exampleapp-ui"
 ```
 
-Keys are the same, but with "\_OIDC\_" replaced by "\_PLAIN_SUOMIFI\_".
+Keys are the same, but with "\_OIDC\_" replaced by "\_KEYCLOAK\_".
 
 ### Config for getting Profile data
 
@@ -66,12 +66,11 @@ Keys are the same, but with "\_OIDC\_" replaced by "\_PLAIN_SUOMIFI\_".
 Use same config as above with Tunnistamo and add
 
 ```bash
-REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 REACT_APP_OIDC_SCOPE="openid profile email https://api.hel.fi/auth/helsinkiprofile"
 REACT_APP_OIDC_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
 ```
 
-Tunnistamo does not use these, so left them empty:
+Tunnistamo does not use these, so leave them empty:
 
 ```bash
 REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
@@ -83,11 +82,10 @@ REACT_APP_OIDC_API_TOKEN_PERMISSION=""
 Use same config as above with Helsinki-tunnistus and add
 
 ```bash
-REACT_APP_PLAIN_SUOMIFI_CLIENT_ID="exampleapp-ui"
-REACT_APP_PLAIN_SUOMIFI_SCOPE="openid profile email"
-REACT_APP_PLAIN_SUOMIFI_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
-REACT_APP_PLAIN_SUOMIFI_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
-REACT_APP_PLAIN_SUOMIFI_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_SCOPE="openid profile email"
+REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
+REACT_APP_KEYCLOAK_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
 ```
 
 ### Config for getting Example backend data
@@ -100,7 +98,7 @@ When getting api tokens, the Tunnistamo request does not need any props. But aud
 REACT_APP_OIDC_EXAMPLE_API_TOKEN_AUDIENCE="api token audience in Tunnistamo"
 ```
 
-Tunnistamo does not use these, so left them empty:
+Tunnistamo does not use these, so leave them empty:
 
 ```bash
 REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
@@ -112,10 +110,9 @@ REACT_APP_OIDC_API_TOKEN_PERMISSION=""
 This server uses the audience, grant type and permission.
 
 ```bash
-REACT_APP_PROFILE_BACKEND_URL="<PROFILE_API_SERVER_URL>/graphql/"
-REACT_APP_PLAIN_SUOMIFI_PROFILE_API_TOKEN_AUDIENCE="api token audience in Helsinki-Tunnistus"
-REACT_APP__PLAIN_SUOMIFI_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
-REACT_APP_PLAIN_SUOMIFI_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_EXAMPLE_API_TOKEN_AUDIENCE="example api token audience in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
 ```
 
 ## Docker

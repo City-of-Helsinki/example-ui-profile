@@ -6,17 +6,19 @@ import ReduxConsumer from '../components/ReduxConsumer';
 import WithAuthDemo from '../components/WithAuthDemo';
 import ClientConsumer from '../components/ClientConsumer';
 import { getClientConfig } from '../client';
+import { useClient } from '../client/hooks';
 
 const Index = (): React.ReactElement => {
   const currentConfig = getClientConfig();
   const clientContext = useContext(ClientContext);
+  const client = useClient();
   return (
     <PageContent>
       {!!clientContext && clientContext.client ? (
         <>
           <h1>Client-demo </h1>
           <p>
-            Olet kirjautumassa{' '}
+            Olet {client.isAuthenticated() ? 'kirjautunut' : 'kirjautumassa'}{' '}
             <strong>{currentConfig.label} -palvelun kautta.</strong>
           </p>
           <p>

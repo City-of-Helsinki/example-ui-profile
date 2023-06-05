@@ -20,7 +20,7 @@ function envValueToBoolean(
 }
 
 function createConfigFromEnv(
-  source: 'OIDC' | 'PLAIN_SUOMIFI'
+  source: 'OIDC' | 'KEYCLOAK'
 ): Partial<ClientConfig> {
   const url = String(window._env_[`REACT_APP_${source}_URL`]);
   const realm = String(window._env_[`REACT_APP_${source}_REALM`]);
@@ -67,7 +67,7 @@ function createConfigFromEnv(
 
 const mvpConfig = {
   ...createConfigFromEnv('OIDC'),
-  path: '/helsinkimvp',
+  path: '/tunnistamo',
   label: 'Tunnistamo'
 } as ClientConfig;
 
@@ -76,8 +76,8 @@ const uiConfig: { profileUIUrl: string } = {
 };
 
 const plainSuomiFiConfig = {
-  ...createConfigFromEnv('PLAIN_SUOMIFI'),
-  path: '/plainsuomifi',
+  ...createConfigFromEnv('KEYCLOAK'),
+  path: '/helsinkitunnistus',
   label: 'Helsinki-Tunnistus'
 } as ClientConfig;
 
