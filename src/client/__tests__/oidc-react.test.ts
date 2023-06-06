@@ -104,14 +104,10 @@ describe('Oidc client ', () => {
       triggerEvent('accessTokenExpiring');
       expect(eventListeners.getCallCount(ClientEvent.TOKEN_EXPIRING)).toBe(1);
     });
-    it('userLoaded triggers CLIENT_AUTH_SUCCESS event', async () => {
-      expect(eventListeners.getCallCount(ClientEvent.CLIENT_AUTH_SUCCESS)).toBe(
-        0
-      );
+    it('userLoaded triggers USER_CHANGED event', async () => {
+      expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(0);
       triggerEvent('userLoaded');
-      expect(eventListeners.getCallCount(ClientEvent.CLIENT_AUTH_SUCCESS)).toBe(
-        1
-      );
+      expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(1);
     });
   });
   describe('handleCallback works like init()  ', () => {

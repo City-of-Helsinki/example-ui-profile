@@ -41,9 +41,9 @@ function bindEvents(
   }
 ): void {
   const { onAuthChange, setError, eventTrigger } = eventFunctions;
-  manager.events.addUserLoaded((): void =>
-    eventTrigger(ClientEvent.CLIENT_AUTH_SUCCESS)
-  );
+  manager.events.addUserLoaded((user): void => {
+    eventTrigger(ClientEvent.USER_CHANGED, (user as unknown) as ClientUser);
+  });
   manager.events.addUserUnloaded((): boolean => onAuthChange(false));
   manager.events.addUserSignedOut((): boolean => onAuthChange(false));
   manager.events.addUserSessionChanged((): boolean => onAuthChange(false));
