@@ -276,10 +276,12 @@ export function createClient(): ClientFactory {
 
   const getApiToken: ClientFactory['getApiToken'] = audience =>
     tokenStorage[audience];
+
   const addApiTokens: ClientFactory['addApiTokens'] = newToken => {
     Object.assign(tokenStorage, newToken);
     return tokenStorage;
   };
+
   const removeApiToken: ClientFactory['removeApiToken'] = audience => {
     delete tokenStorage[audience];
     return tokenStorage;

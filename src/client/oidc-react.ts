@@ -282,6 +282,29 @@ export function createOidcClient(): Client {
     });
   };
 
+  const renewApiTokenForAudience = async (audience: string) => {
+    if (!clientFunctions.getApiToken(audience)) {
+      return Promise.resolve(null);
+    }
+    const fetchOptions = clientConfig.apiPermission
+      ? {
+          permission: String(clientConfig.apiPermission),
+          grantType: String(clientConfig.apiGrantType),
+          audience
+        }
+      : { audience };
+    clientFunctions.removeApiToken(audience);
+    return getApiAccessToken({
+      ...fetchOptions,
+      audience
+    });
+  };
+
+  const renewApiTokens = async () => {
+    await renewApiTokenForAudience(clientConfig.exampleApiTokenAudience);
+    await renewApiTokenForAudience(clientConfig.profileApiTokenAudience);
+  };
+
   const getUserTokens: Client['getUserTokens'] = () => {
     if (!isAuthenticated()) {
       return undefined;
@@ -348,6 +371,16 @@ export function createOidcClient(): Client {
   });
   clientFunctions.addListener(ClientEvent.UNAUTHORIZED, () => {
     userSessionValidityPoller.stop();
+  });
+  clientFunctions.addListener(ClientEvent.USER_CHANGED, () => {
+    if (isAuthenticated()) {
+      renewApiTokens().catch(() => {
+        // Catch handler should exist,
+        // but renewal errors are irrelevant.
+        // Tokens are anyway loaded when needed
+        // and renewal removes them before fetching.
+      });
+    }
   });
   return client;
 }
