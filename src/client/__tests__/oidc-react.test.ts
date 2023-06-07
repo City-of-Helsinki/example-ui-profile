@@ -108,9 +108,20 @@ describe('Oidc client ', () => {
       expect(eventListeners.getCallCount(ClientEvent.TOKEN_EXPIRING)).toBe(1);
     });
     it('userLoaded triggers USER_CHANGED event', async () => {
+      mockMutator.setUser(mockMutator.createValidUserData());
+      await to(client.init());
+      const validUserData = {
+        profile: {
+          ...mockMutator.getTokenParsed()
+        },
+        access_token: 'new_token_for_USER_CHANGED'
+      };
       expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(0);
-      triggerEvent('userLoaded');
+      triggerEvent('userLoaded', validUserData);
       expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(1);
+      expect((client.getUserTokens() as AnyObject).accessToken).toBe(
+        validUserData.access_token
+      );
     });
   });
   describe('handleCallback works like init()  ', () => {

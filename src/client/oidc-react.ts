@@ -372,8 +372,11 @@ export function createOidcClient(): Client {
   clientFunctions.addListener(ClientEvent.UNAUTHORIZED, () => {
     userSessionValidityPoller.stop();
   });
-  clientFunctions.addListener(ClientEvent.USER_CHANGED, () => {
+  clientFunctions.addListener(ClientEvent.USER_CHANGED, user => {
     if (isAuthenticated()) {
+      // if not authenticated, user just logged in
+      // and user is stored in callback handler
+      setStoredUser(user as ClientUser);
       renewApiTokens().catch(() => {
         // Catch handler should exist,
         // but renewal errors are irrelevant.
