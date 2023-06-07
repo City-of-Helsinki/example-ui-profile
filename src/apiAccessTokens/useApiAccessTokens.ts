@@ -93,14 +93,8 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       if (currentStatus !== 'ready') {
         return;
       }
-      const props = config.apiPermission
-        ? {
-            audience,
-            permission: String(config.apiPermission),
-            grantType: String(config.apiGrantType)
-          }
-        : { audience };
-      fetchTokens(props);
+
+      fetchTokens({ audience });
     };
 
     autoFetch();

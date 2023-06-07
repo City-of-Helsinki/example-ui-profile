@@ -50,9 +50,7 @@ export const ClientStatus = {
 export type ClientStatusId = typeof ClientStatus[keyof typeof ClientStatus];
 
 export type FetchApiTokenOptions = {
-  grantType?: string;
   audience: string;
-  permission?: string;
 };
 
 export type FetchApiTokenConfiguration = FetchApiTokenOptions & {
@@ -322,12 +320,12 @@ export function createClient(): ClientFactory {
     myHeaders.append('Content-Type', 'application/x-www-form-urlencoded');
 
     const urlencoded = new URLSearchParams();
-    if (options.grantType) {
-      urlencoded.append('grant_type', options.grantType);
-    }
     urlencoded.append('audience', options.audience);
-    if (options.permission) {
-      urlencoded.append('permission', options.permission);
+    if (config.apiGrantType) {
+      urlencoded.append('grant_type', config.apiGrantType);
+    }
+    if (config.apiPermission) {
+      urlencoded.append('permission', config.apiPermission);
     }
 
     const requestOptions = {

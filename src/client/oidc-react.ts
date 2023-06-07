@@ -286,16 +286,8 @@ export function createOidcClient(): Client {
     if (!clientFunctions.getApiToken(audience)) {
       return Promise.resolve(null);
     }
-    const fetchOptions = clientConfig.apiPermission
-      ? {
-          permission: String(clientConfig.apiPermission),
-          grantType: String(clientConfig.apiGrantType),
-          audience
-        }
-      : { audience };
     clientFunctions.removeApiToken(audience);
     return getApiAccessToken({
-      ...fetchOptions,
       audience
     });
   };

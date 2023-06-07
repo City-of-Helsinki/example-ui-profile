@@ -94,8 +94,6 @@ export const createApiTokenFetchPayload = (
   overrides?: Partial<FetchApiTokenOptions>
 ): FetchApiTokenOptions => ({
   audience: 'audience',
-  grantType: 'grantType',
-  permission: 'permission',
   ...overrides
 });
 
