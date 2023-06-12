@@ -26,7 +26,7 @@ const Index = (): React.ReactElement => {
             Voit kirjautua sisään / ulos alla olevasta komponentista tai
             headerista.
           </p>
-          <p>Voit myös kirjatua ulos toisessa ikkunassa.</p>
+          <p>Voit myös kirjautua ulos toisessa ikkunassa.</p>
           <LoginComponent />
           <ReduxConsumer />
           <WithAuthDemo />
