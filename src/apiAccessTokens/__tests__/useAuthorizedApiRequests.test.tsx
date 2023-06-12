@@ -3,7 +3,6 @@ import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { waitFor } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
-import { AnyFunction } from '../../common';
 import { FetchStatus } from '../useApiAccessTokens';
 import useAuthorizedApiRequests, {
   AuthorizedApiActions,
@@ -19,7 +18,7 @@ import {
   resetAndSetMockApiAccessTokensHookData
 } from '../__mocks__/useApiAccessTokens';
 import { getFetchMockLastCallAuthenticationHeader } from '../../tests/common.test.helper';
-import { setEnv, mockApiTokenResponse } from '../../tests/client.test.helper';
+import { mockApiTokenResponse } from '../../tests/client.test.helper';
 import { configureClient } from '../../client/__mocks__';
 
 type TestProps = {
@@ -37,7 +36,6 @@ jest.mock('../../apiAccessTokens/useApiAccessTokens');
 describe('useAuthorizedApiRequests hook ', () => {
   let authorizedApiActions: AuthorizedApiActions<TestResponseData, TestProps>;
   let dom: ReactWrapper;
-  let restoreEnv: AnyFunction;
   let autoFetch = false;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
@@ -155,13 +153,9 @@ describe('useAuthorizedApiRequests hook ', () => {
     });
 
   beforeAll(async () => {
-    restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience
-    });
     fetchMock.enableMocks();
   });
   afterAll(() => {
-    restoreEnv();
     fetchMock.disableMocks();
   });
   afterEach(() => {
