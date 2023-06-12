@@ -41,7 +41,7 @@ Settings when using Tunnistamo authentication:
 
 ```bash
 REACT_APP_OIDC_URL="<SERVER_URL>/auth"
-REACT_APP_OIDC_REALM="helsinki-tunnistus"
+REACT_APP_OIDC_REALM=""
 REACT_APP_OIDC_SCOPE="profile"
 REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 ```
@@ -174,3 +174,17 @@ as `window._env_` object.
 
 Generation uses `react-scripts` internals, so values come from either environment variables or files (according
 [react-scripts documentation](https://create-react-app.dev/docs/adding-custom-environment-variables/#what-other-env-files-can-be-used)).
+
+## Logging in locally with Keycloak and using non-chromium browser
+
+Firefox and Safari are stricter with third-party cookies and therefore session checks in iframes fail with Firefox and Safari, when using localhost with Keycloak. Login works, but session checks fail immediately. There are no known issues with Tunnistamo.
+
+Third party cookies are not an issue, when service is deployed and servers have same top level domains like \*.hel.ninja. The problem occurs locally, because http://localhost:3000 is communicating with https://\*.dev.hel.ninja.
+
+More info about Firefox:
+https://developer.mozilla.org/en-US/docs/Web/Privacy/Storage_Access_Policy/Errors/CookiePartitionedForeign
+
+Issue can be temporarily resolved with:
+https://developer.mozilla.org/en-US/docs/Web/Privacy/State_Partitioning#disable_dynamic_state_partitioning
+
+With Safari, go to "Settings" -> "Privacy" -> uncheck "Prevent cross-site tracking"
