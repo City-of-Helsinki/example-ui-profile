@@ -58,7 +58,7 @@ describe('useAuthorizedApiRequests hook ', () => {
 
   const req: Request = async p => {
     const headers = new Headers();
-    headers.append('Authorization', `Bearer ${p.apiTokens[testAudience]}`);
+    headers.append('Authorization', `Bearer ${p.token}`);
     const fetchResponse = await fetch(requestUrl, {
       method: 'POST',
       headers
@@ -81,7 +81,6 @@ describe('useAuthorizedApiRequests hook ', () => {
         : { audience: testAudience }
     );
     const data = authorizedApiActions.getData();
-    const tokens = authorizedApiActions.getTokenAsObject();
     const [, setNumber] = useState<number>(0);
     forceUpdate = setNumber;
     return (
@@ -92,7 +91,6 @@ describe('useAuthorizedApiRequests hook ', () => {
         <div id="request-status">{authorizedApiActions.getRequestStatus()}</div>
         <div id="status">{authorizedApiActions.getStatus()}</div>
         <div id="data">{data ? JSON.stringify(data) : noDataText}</div>
-        <div id="tokens">{tokens ? JSON.stringify(tokens) : noDataText}</div>
       </div>
     );
   };
@@ -194,7 +192,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       expect(authHeader).toBe(`Bearer ${validTokens[testAudience]}`);
       expect(requestTracker).toHaveBeenCalledTimes(1);
       expect(requestTracker).lastCalledWith({
-        apiTokens: validTokens,
+        token: validTokens[testAudience],
         ...autoFetchProp
       });
     });
@@ -232,7 +230,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       expect(getDataFromDom()).toEqual(responseData);
       expect(requestTracker).toHaveBeenCalledTimes(1);
       expect(requestTracker).lastCalledWith({
-        apiTokens: validTokens,
+        token: validTokens[testAudience],
         ...firstCallProps
       });
       authorizedApiActions.request();
@@ -243,7 +241,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       );
       expect(requestTracker).toHaveBeenCalledTimes(2);
       expect(requestTracker).lastCalledWith({
-        apiTokens: validTokens
+        token: validTokens[testAudience]
       });
     });
   });

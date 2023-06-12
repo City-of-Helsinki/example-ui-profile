@@ -21,7 +21,7 @@ export type ApiAccessTokenActions = {
   fetch: (options: FetchApiTokenOptions) => Promise<JWTPayload | FetchError>;
   getStatus: () => FetchStatus;
   getErrorMessage: () => string | undefined;
-  getTokenAsObject: () => JWTPayload | undefined;
+  getToken: () => string | undefined;
 };
 
 export const ApiAccessTokenActionsContext = createContext<ApiAccessTokenActions | null>(
@@ -114,6 +114,6 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       return undefined;
     },
     fetch: options => fetchTokens(options),
-    getTokenAsObject: () => apiTokens
-  } as ApiAccessTokenActions;
+    getToken: () => (apiTokens ? apiTokens[audience] : undefined)
+  };
 }

@@ -4,7 +4,7 @@ import useAuthorizedApiRequests, {
   AuthorizedRequest,
   AuthorizedApiActions
 } from '../apiAccessTokens/useAuthorizedApiRequests';
-import { JWTPayload, getClientConfig } from '../client';
+import { getClientConfig } from '../client';
 
 // eslint-disable-next-line camelcase
 export type ReturnData = { pet_name: string };
@@ -13,20 +13,9 @@ type FetchProps = ReturnData | undefined;
 type Request = AuthorizedRequest<ReturnData, FetchProps>;
 export type BackendActions = AuthorizedApiActions<ReturnData, FetchProps>;
 
-export function getBackendApiToken(apiTokens: JWTPayload): string | undefined {
-  const tokenKey = getClientConfig().exampleApiTokenAudience;
-  if (!tokenKey) {
-    return undefined;
-  }
-  return apiTokens && apiTokens[tokenKey];
-}
-
 export const executeAPIAction: Request = async options => {
   const myHeaders = new Headers();
-  myHeaders.append(
-    'Authorization',
-    `Bearer ${getBackendApiToken(options.apiTokens)}`
-  );
+  myHeaders.append('Authorization', `Bearer ${options.token}`);
   myHeaders.append('Content-Type', 'application/json');
   myHeaders.delete('pragma');
   const requestOptions: RequestInit = {

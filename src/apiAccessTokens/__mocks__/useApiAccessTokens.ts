@@ -40,7 +40,7 @@ export function resetAndSetMockApiAccessTokensHookData(
   Object.assign(mockApiAccessTokensHookData, data);
 }
 
-export function useApiAccessTokens(): ApiAccessTokenActions {
+export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
   return {
     getStatus: () => mockApiAccessTokensHookData.status,
     getErrorMessage: () => {
@@ -56,6 +56,9 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
       return undefined;
     },
     fetch: options => Promise.resolve(options),
-    getTokenAsObject: () => mockApiAccessTokensHookData.apiTokens
+    getToken: () =>
+      mockApiAccessTokensHookData.apiTokens
+        ? mockApiAccessTokensHookData.apiTokens[audience]
+        : undefined
   } as ApiAccessTokenActions;
 }

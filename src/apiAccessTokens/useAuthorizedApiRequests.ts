@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import to from 'await-to-js';
 
 import { FetchStatus, useApiAccessTokens } from './useApiAccessTokens';
-import { JWTPayload } from '../client';
 
 export type RequestProps<P> = {
   data?: P;
@@ -15,7 +14,7 @@ export type Props<P> = {
 
 export type AuthorizedRequestProps<P> = {
   data?: P;
-  apiTokens: JWTPayload;
+  token: string;
 };
 
 export type AuthorizedRequest<R, P> = (
@@ -32,7 +31,6 @@ export type AuthorizedApiActions<R, P> = {
     props?: Omit<RequestProps<P>, 'audience'>
   ) => Promise<R | undefined>;
   getData: () => R | undefined;
-  getTokenAsObject: () => JWTPayload | undefined;
   clear: () => void;
 };
 
@@ -45,7 +43,7 @@ export default function useAuthorizedApiRequests<R, P>(
   const {
     getStatus: getApiAccessTokenStatus,
     getErrorMessage: getApiTokenErrorMessage,
-    getTokenAsObject
+    getToken
   } = actions;
   const [requestStatus, setRequestStatus] = useState<FetchStatus>('waiting');
   const [result, setResult] = useState<R>();
@@ -88,7 +86,7 @@ export default function useAuthorizedApiRequests<R, P>(
       const [err, data] = await to<R | undefined, Error>(
         authorizedRequest({
           ...wrapperProps,
-          apiTokens: getTokenAsObject() as JWTPayload
+          token: getToken() as string
         })
       );
       if (err) {
@@ -102,7 +100,7 @@ export default function useAuthorizedApiRequests<R, P>(
       setError(undefined);
       return data as R;
     },
-    [authorizedRequest, getTokenAsObject]
+    [authorizedRequest, getToken]
   );
 
   useEffect(() => {
@@ -122,7 +120,6 @@ export default function useAuthorizedApiRequests<R, P>(
     getRequestStatus: () => requestStatus,
     getApiTokenError: () => getApiTokenErrorMessage(),
     getData: () => result,
-    getTokenAsObject: () => getTokenAsObject(),
     getRequestError: () => {
       if (!error) {
         return undefined;

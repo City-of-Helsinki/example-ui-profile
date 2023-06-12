@@ -15,7 +15,7 @@ import useAuthorizedApiRequests, {
   AuthorizedRequest,
   AuthorizedApiActions
 } from '../apiAccessTokens/useAuthorizedApiRequests';
-import { JWTPayload, getClientConfig } from '../client';
+import { getClientConfig } from '../client';
 
 let profileGqlClient: GraphQLClient;
 
@@ -109,14 +109,6 @@ export async function getProfileData(
   return result;
 }
 
-export function getProfileApiToken(apiTokens: JWTPayload): string | undefined {
-  const tokenKey = getClientConfig().profileApiTokenAudience;
-  if (!tokenKey) {
-    return undefined;
-  }
-  return apiTokens && apiTokens[tokenKey];
-}
-
 export async function clearGraphQlClient(): Promise<void> {
   const client = getProfileGqlClient();
   if (client) {
@@ -126,7 +118,7 @@ export async function clearGraphQlClient(): Promise<void> {
 }
 
 const executeAPIAction: Request = async options => {
-  const result = await getProfileData(getProfileApiToken(options.apiTokens));
+  const result = await getProfileData(options.token);
   const resultAsError = result as GraphQLClientError;
   if (resultAsError.error) {
     throw resultAsError.error;

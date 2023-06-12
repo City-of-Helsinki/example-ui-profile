@@ -14,13 +14,11 @@ const TokenForm = ({
   audience: string;
   onCompletion: (audience: string) => void;
 }): React.ReactElement => {
-  const { getStatus, getTokenAsObject, getErrorMessage } = useApiAccessTokens(
-    audience
-  );
+  const { getStatus, getToken, getErrorMessage } = useApiAccessTokens(audience);
   const completionReportedRef = useRef(false);
   const status = getStatus();
   const isLoading = status === 'loading';
-  const tokenObj = status === 'loaded' ? getTokenAsObject() : undefined;
+  const token = status === 'loaded' ? getToken() : undefined;
   const isComplete = status === 'loaded' || status === 'error';
 
   useEffect(() => {
@@ -43,10 +41,7 @@ const TokenForm = ({
           <span>Haetaan api tokenia...</span>
         </div>
       )}
-      <AccessTokenOutput
-        accessToken={tokenObj ? tokenObj[audience] : ''}
-        audience={audience}
-      />
+      <AccessTokenOutput accessToken={token || ''} audience={audience} />
     </div>
   );
 };
