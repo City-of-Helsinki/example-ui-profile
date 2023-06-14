@@ -39,9 +39,9 @@ const ConfigChecker = (
   };
   if (activeConfig !== configFromRoute) {
     const swapped =
-      activeConfig.path === config.mvpConfig.path
-        ? config.plainSuomiFiConfig
-        : config.mvpConfig;
+      activeConfig.path === config.tunnistamoConfig.path
+        ? config.keycloakConfig
+        : config.tunnistamoConfig;
     return (
       <PageContent>
         <div>

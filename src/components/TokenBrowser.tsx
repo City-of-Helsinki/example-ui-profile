@@ -6,11 +6,18 @@ import styles from './styles.module.css';
 
 const TokenBrowser = (): React.ReactElement => {
   const client = useClient();
+  const config = getClientConfig();
   const [selectedToken, changeSelectedToken] = useState<string | undefined>();
   const [selectedId, changeSelectedId] = useState<string | undefined>();
-  const apiTokens = client.getApiTokens();
+  const apiTokens = {
+    [config.exampleApiTokenAudience]: client.getApiToken(
+      config.exampleApiTokenAudience
+    ),
+    [config.profileApiTokenAudience]: client.getApiToken(
+      config.profileApiTokenAudience
+    )
+  };
   const userTokens = client.getUserTokens();
-  const config = getClientConfig();
   // Keycloak server returns object with also other data than tokens.
   // 20 is a (pretty) safe length of non-token property value.
   // Later on tokens may be filted with prop names and config.audience.

@@ -20,12 +20,20 @@ function envValueToBoolean(
 }
 
 function createConfigFromEnv(
-  source: 'OIDC' | 'PLAIN_SUOMIFI'
+  source: 'OIDC' | 'KEYCLOAK'
 ): Partial<ClientConfig> {
   const url = String(window._env_[`REACT_APP_${source}_URL`]);
   const realm = String(window._env_[`REACT_APP_${source}_REALM`]);
   const tokenExchangePath =
     window._env_[`REACT_APP_${source}_TOKEN_EXCHANGE_PATH`];
+  const exampleApiTokenAudience =
+    window._env_[`REACT_APP_${source}_EXAMPLE_API_TOKEN_AUDIENCE`];
+  const profileApiTokenAudience =
+    window._env_[`REACT_APP_${source}_PROFILE_API_TOKEN_AUDIENCE`];
+  const scope = window._env_[`REACT_APP_${source}_SCOPE`];
+  const apiGrantType = window._env_[`REACT_APP_${source}_API_TOKEN_GRANT_TYPE`];
+  const apiPermission =
+    window._env_[`REACT_APP_${source}_API_TOKEN_PERMISSION`];
   return {
     realm,
     url,
@@ -35,7 +43,7 @@ function createConfigFromEnv(
     logoutPath: window._env_[`REACT_APP_${source}_LOGOUT_PATH`] || '/',
     silentAuthPath: window._env_[`REACT_APP_${source}_SILENT_AUTH_PATH`],
     responseType: window._env_[`REACT_APP_${source}_RESPONSE_TYPE`],
-    scope: window._env_[`REACT_APP_${source}_SCOPE`],
+    scope,
     autoSignIn: envValueToBoolean(
       window._env_[`REACT_APP_${source}_AUTO_SIGN_IN`],
       true
@@ -49,43 +57,50 @@ function createConfigFromEnv(
       false
     ),
     tokenExchangePath,
-    hasApiTokenSupport: Boolean(tokenExchangePath)
+    exampleApiTokenAudience,
+    profileApiTokenAudience,
+    apiGrantType,
+    apiPermission
   };
 }
 
-const mvpConfig = {
+const tunnistamoConfig = {
   ...createConfigFromEnv('OIDC'),
-  path: '/helsinkimvp',
-  label: 'Helsinki-profiili MVP'
+  path: '/tunnistamo',
+  label: 'Tunnistamo'
 } as ClientConfig;
 
 const uiConfig: { profileUIUrl: string } = {
   profileUIUrl: String(window._env_.REACT_APP_PROFILE_UI_URL)
 };
 
-const plainSuomiFiConfig = {
-  ...createConfigFromEnv('PLAIN_SUOMIFI'),
-  path: '/plainsuomifi',
-  label: 'pelkkä Suomi.fi autentikaatio'
+const keycloakConfig = {
+  ...createConfigFromEnv('KEYCLOAK'),
+  path: '/helsinkitunnistus',
+  label: 'Helsinki-Tunnistus'
 } as ClientConfig;
 
 const isCallbackUrl = (route: string): boolean =>
-  route === mvpConfig.callbackPath || route === plainSuomiFiConfig.callbackPath;
+  route === tunnistamoConfig.callbackPath ||
+  route === keycloakConfig.callbackPath;
 
 const getConfigFromRoute = (route: string): ClientConfig | undefined => {
   if (route.length < 2) {
     return undefined;
   }
-  if (route.includes(mvpConfig.path) || route === mvpConfig.callbackPath) {
-    return mvpConfig;
+  if (
+    route.includes(tunnistamoConfig.path) ||
+    route === tunnistamoConfig.callbackPath
+  ) {
+    return tunnistamoConfig;
   }
-  return plainSuomiFiConfig;
+  return keycloakConfig;
 };
 
 export default {
-  mvpConfig,
+  tunnistamoConfig,
   ui: uiConfig,
-  plainSuomiFiConfig,
+  keycloakConfig,
   isCallbackUrl,
   getConfigFromRoute
 };

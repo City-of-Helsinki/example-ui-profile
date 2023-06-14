@@ -41,9 +41,9 @@ function bindEvents(
   }
 ): void {
   const { onAuthChange, setError, eventTrigger } = eventFunctions;
-  manager.events.addUserLoaded((): void =>
-    eventTrigger(ClientEvent.CLIENT_AUTH_SUCCESS)
-  );
+  manager.events.addUserLoaded((user): void => {
+    eventTrigger(ClientEvent.USER_CHANGED, (user as unknown) as ClientUser);
+  });
   manager.events.addUserUnloaded((): boolean => onAuthChange(false));
   manager.events.addUserSignedOut((): boolean => onAuthChange(false));
   manager.events.addUserSessionChanged((): boolean => onAuthChange(false));
@@ -282,6 +282,21 @@ export function createOidcClient(): Client {
     });
   };
 
+  const renewApiTokenForAudience = async (audience: string) => {
+    if (!clientFunctions.getApiToken(audience)) {
+      return Promise.resolve(null);
+    }
+    clientFunctions.removeApiToken(audience);
+    return getApiAccessToken({
+      audience
+    });
+  };
+
+  const renewApiTokens = async () => {
+    await renewApiTokenForAudience(clientConfig.exampleApiTokenAudience);
+    await renewApiTokenForAudience(clientConfig.profileApiTokenAudience);
+  };
+
   const getUserTokens: Client['getUserTokens'] = () => {
     if (!isAuthenticated()) {
       return undefined;
@@ -348,6 +363,19 @@ export function createOidcClient(): Client {
   });
   clientFunctions.addListener(ClientEvent.UNAUTHORIZED, () => {
     userSessionValidityPoller.stop();
+  });
+  clientFunctions.addListener(ClientEvent.USER_CHANGED, user => {
+    if (isAuthenticated()) {
+      // if not authenticated, user just logged in
+      // and user is stored in callback handler
+      setStoredUser(user as ClientUser);
+      renewApiTokens().catch(() => {
+        // Catch handler should exist,
+        // but renewal errors are irrelevant.
+        // Tokens are anyway loaded when needed
+        // and renewal removes them before fetching.
+      });
+    }
   });
   return client;
 }

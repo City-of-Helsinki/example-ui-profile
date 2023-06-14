@@ -1,5 +1,10 @@
 import { useEffect, useState, useCallback, createContext } from 'react';
-import { FetchApiTokenOptions, FetchError, JWTPayload } from '../client/index';
+import {
+  FetchApiTokenOptions,
+  FetchError,
+  JWTPayload,
+  getClientConfig
+} from '../client/index';
 import { useClient } from '../client/hooks';
 
 export type FetchStatus =
@@ -16,19 +21,21 @@ export type ApiAccessTokenActions = {
   fetch: (options: FetchApiTokenOptions) => Promise<JWTPayload | FetchError>;
   getStatus: () => FetchStatus;
   getErrorMessage: () => string | undefined;
-  getTokens: () => JWTPayload | undefined;
+  getToken: () => string | undefined;
 };
 
 export const ApiAccessTokenActionsContext = createContext<ApiAccessTokenActions | null>(
   null
 );
 
-export function useApiAccessTokens(): ApiAccessTokenActions {
+export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
   const client = useClient();
-  const tokens = client.isAuthenticated() ? client.getApiTokens() : undefined;
-  const hasTokens = tokens && Object.keys(tokens).length;
+  const config = getClientConfig();
+  const apiToken = client.isAuthenticated()
+    ? client.getApiToken(audience)
+    : undefined;
   const [apiTokens, setApiTokens] = useState<JWTPayload | undefined>(
-    hasTokens ? tokens : undefined
+    apiToken ? { [audience]: apiToken } : undefined
   );
 
   const resolveStatus = (): FetchStatus => {
@@ -63,12 +70,13 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
     async options => {
       setStatus('loading');
       const result = await client.getApiAccessToken(options);
-      if (result.error) {
+      if ((result as FetchError).error) {
+        const resultAsError = result as FetchError;
         setStatus('error');
         setError(
-          result.message
-            ? new Error(`${result.message} ${result.status}`)
-            : result.error
+          resultAsError.message
+            ? new Error(`${resultAsError.message} ${resultAsError.status}`)
+            : resultAsError.error
         );
       } else {
         setError(undefined);
@@ -85,15 +93,12 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
       if (currentStatus !== 'ready') {
         return;
       }
-      fetchTokens({
-        audience: String(window._env_.REACT_APP_API_BACKEND_AUDIENCE),
-        permission: String(window._env_.REACT_APP_API_BACKEND_PERMISSION),
-        grantType: String(window._env_.REACT_APP_API_BACKEND_GRANT_TYPE)
-      });
+
+      fetchTokens({ audience });
     };
 
     autoFetch();
-  }, [fetchTokens, currentStatus]);
+  }, [fetchTokens, currentStatus, audience, config]);
   return {
     getStatus: () => status,
     getErrorMessage: () => {
@@ -109,6 +114,6 @@ export function useApiAccessTokens(): ApiAccessTokenActions {
       return undefined;
     },
     fetch: options => fetchTokens(options),
-    getTokens: () => apiTokens
-  } as ApiAccessTokenActions;
+    getToken: () => (apiTokens ? apiTokens[audience] : undefined)
+  };
 }

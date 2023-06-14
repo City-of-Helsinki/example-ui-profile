@@ -6,17 +6,20 @@ import ReduxConsumer from '../components/ReduxConsumer';
 import WithAuthDemo from '../components/WithAuthDemo';
 import ClientConsumer from '../components/ClientConsumer';
 import { getClientConfig } from '../client';
+import { useClient } from '../client/hooks';
 
 const Index = (): React.ReactElement => {
   const currentConfig = getClientConfig();
   const clientContext = useContext(ClientContext);
+  const client = useClient();
   return (
     <PageContent>
       {!!clientContext && clientContext.client ? (
         <>
           <h1>Client-demo </h1>
           <p>
-            Kirjautumistapasi on <strong>{currentConfig.label}.</strong>
+            Olet {client.isAuthenticated() ? 'kirjautunut' : 'kirjautumassa'}{' '}
+            <strong>{currentConfig.label} -palvelun kautta.</strong>
           </p>
           <p>
             Tässä demossa näytetään kirjautumisikkuna ja komponentteja, jotka
@@ -26,7 +29,7 @@ const Index = (): React.ReactElement => {
             Voit kirjautua sisään / ulos alla olevasta komponentista tai
             headerista.
           </p>
-          <p>Voit myös kirjatua ulos toisessa ikkunassa.</p>
+          <p>Voit myös kirjautua ulos toisessa ikkunassa.</p>
           <LoginComponent />
           <ReduxConsumer />
           <WithAuthDemo />

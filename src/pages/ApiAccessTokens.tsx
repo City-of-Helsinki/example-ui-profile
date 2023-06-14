@@ -1,47 +1,34 @@
-import React, { useState } from 'react';
-import { Button } from 'hds-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PageContent from '../components/PageContent';
-import AccessTokenForm from '../components/AccessTokenForm';
 import AccessTokenOutput from '../components/AccessTokenOutput';
-import { FetchApiTokenOptions } from '../client';
+import { getClientConfig } from '../client';
 import LoginInfo from '../components/LoginInfo';
 import AuthenticatingInfo from '../components/AuthenticatingInfo';
 import WithAuth from '../client/WithAuth';
 import { useApiAccessTokens } from '../apiAccessTokens/useApiAccessTokens';
 
-const AuthenticatedContent = (): React.ReactElement => {
-  const { getStatus, getTokens, fetch, getErrorMessage } = useApiAccessTokens();
+const TokenForm = ({
+  audience,
+  onCompletion
+}: {
+  audience: string;
+  onCompletion: (audience: string) => void;
+}): React.ReactElement => {
+  const { getStatus, getToken, getErrorMessage } = useApiAccessTokens(audience);
+  const completionReportedRef = useRef(false);
   const status = getStatus();
   const isLoading = status === 'loading';
-  const canLoad = status === 'loaded' || status === 'ready';
-  const tokens = status === 'loaded' ? getTokens() : undefined;
-  const [options, setOptions]: [
-    FetchApiTokenOptions,
-    (newOptions: FetchApiTokenOptions) => void
-  ] = useState({
-    audience: window._env_.REACT_APP_API_BACKEND_AUDIENCE || '',
-    permission: window._env_.REACT_APP_API_BACKEND_PERMISSION || '',
-    grantType: window._env_.REACT_APP_API_BACKEND_GRANT_TYPE || ''
-  });
-  const onSubmit = async (): Promise<void> => {
-    if (isLoading) {
-      return;
+  const token = status === 'loaded' ? getToken() : undefined;
+  const isComplete = status === 'loaded' || status === 'error';
+
+  useEffect(() => {
+    if (isComplete && !completionReportedRef.current) {
+      onCompletion(audience);
+      completionReportedRef.current = true;
     }
-    await fetch(options);
-  };
-  const onOptionChange = (newOptions: FetchApiTokenOptions): void => {
-    setOptions(newOptions);
-  };
+  }, [isComplete, audience, onCompletion]);
   return (
-    <PageContent>
-      <h1>API Access tokenin haku</h1>
-      <p>
-        Jos käytössä on Tunnistamon endPoint, ei asetuksilla ole merkitystä.
-      </p>
-      <AccessTokenForm options={options} onOptionChange={onOptionChange} />
-      <Button onClick={onSubmit} disabled={!canLoad}>
-        Hae
-      </Button>
+    <div>
       {status === 'error' && (
         <div>
           <p data-test-id="api-access-token-error">
@@ -51,11 +38,44 @@ const AuthenticatedContent = (): React.ReactElement => {
       )}
       {isLoading && (
         <div>
-          <span>Haetaan...</span>
+          <span>Haetaan api tokenia...</span>
         </div>
       )}
-      <AccessTokenOutput accessToken={tokens} />
-    </PageContent>
+      <AccessTokenOutput accessToken={token || ''} audience={audience} />
+    </div>
+  );
+};
+
+const TokenFetcher = ({
+  audiences
+}: {
+  audiences: string[];
+}): React.ReactElement => {
+  const [readyCount, updateReadyCount] = useState(0);
+  const onCompletion = useCallback(
+    audience => {
+      const index = audiences.findIndex(aud => aud === audience);
+      if (index > -1) {
+        updateReadyCount(n => n + 1);
+      }
+    },
+    [audiences]
+  );
+  return (
+    <>
+      {audiences.map((audience, index) => {
+        if (index <= readyCount) {
+          return (
+            <TokenForm
+              key={audience}
+              audience={audience}
+              onCompletion={onCompletion}
+            />
+          );
+        }
+        return null;
+      })}
+    </>
   );
 };
 
@@ -64,8 +84,26 @@ const UnauthenticatedContent = (): React.ReactElement => (
     <LoginInfo />
   </PageContent>
 );
+const AuthenticatedContent = (): React.ReactElement => {
+  const config = getClientConfig();
+  return (
+    <PageContent>
+      <h1>API Access tokeneiden haku</h1>
+      <TokenFetcher
+        audiences={[
+          config.exampleApiTokenAudience,
+          config.profileApiTokenAudience
+        ]}
+      />
+    </PageContent>
+  );
+};
 
 const ApiAccessTokens = (): React.ReactElement =>
-  WithAuth(AuthenticatedContent, UnauthenticatedContent, AuthenticatingInfo);
+  WithAuth(
+    () => <AuthenticatedContent />,
+    UnauthenticatedContent,
+    AuthenticatingInfo
+  );
 
 export default ApiAccessTokens;

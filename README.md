@@ -1,6 +1,6 @@
 # Example-profile-ui
 
-Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Helsinki-Profiili MVP and plain Suomi.fi. User chooses one on the index page.
+Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Tunnistamo and Helsinki-tunnistus. User chooses one on the index page.
 
 App uses [oidc-react.js](https://github.com/IdentityModel/oidc-client-js/wiki) for all calls to the OIDC provider. Library is wrapped with "client" (client/index.ts) to unify connections to Tunnistamo, Keycloak server and Profiili API.
 
@@ -10,20 +10,20 @@ Included in this demo app:
 - hooks for easy usage with React
 - redux store listening a client
 - HOC component listening a client and showing different content for authorized and unauthorized users.
-- getting API token and using it to get Profile (only when using Helsinki-Profiili MVP ).
+- getting API token and using it to get Profile
 
 Client dispatches events and trigger changes which then trigger re-rendering of the components using the client.
 
 ## Config
 
-Configs are in .env -files. Default endpoint for Helsinki-Profiili is Tunnistamo. For Suomi.fi authentication, it is plain Keycloak.
+Configs are in .env -files.
 
 Tunnistamo does not support silent login checks (it uses only sessionStorage) so REACT_APP_OIDC_AUTO_SIGN_IN must be 'false'. It renews access tokens so REACT_APP_OIDC_SILENT_AUTH_PATH must be changed to '/' to prevent errors for unknown redirect url.
 
 Config can also be overridden for command line:
 
 ```bash
-REACT_APP_OIDC_URL=https://foo.bar yarn start
+REACT_APP_OIDC_URL="https://foo.bar"
 ```
 
 ### Environment variables
@@ -35,44 +35,84 @@ actual used variables when running the app. App is not using CRA's default `proc
 Note that running built application locally you need to generate also `public/env-config.js` file. It can be done with
 `yarn update-runtime-env`. By default it's generated for development environment if no `NODE_ENV` is set.
 
-### Config for Helsinki-Profiili MVP
+### Config for Tunnistamo
 
-Settings when using Helsinki-Profiili MVP authentication:
+Settings when using Tunnistamo authentication:
 
 ```bash
 REACT_APP_OIDC_URL="<SERVER_URL>/auth"
-REACT_APP_OIDC_REALM="helsinki-tunnistus"
+REACT_APP_OIDC_REALM=""
 REACT_APP_OIDC_SCOPE="profile"
 REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 ```
 
-### Config for plain Suomi.fi
+### Config for Helsinki-tunnistus
 
-Settings when using plain Suomi.fi authentication:
+Settings when using Helsinki-tunnistus authentication:
 
 ```bash
-REACT_APP_PLAIN_SUOMIFI_URL="<SERVER_URL>/auth"
-REACT_APP_PLAIN_SUOMIFI_REALM="helsinki-tunnistus"
-REACT_APP_PLAIN_SUOMIFI_SCOPE="profile"
-REACT_APP_PLAIN_SUOMIFI_CLIENT_ID="exampleapp-ui"
+REACT_APP_KEYCLOAK_URL="<SERVER_URL>/auth"
+REACT_APP_KEYCLOAK_REALM="helsinki-tunnistus"
+REACT_APP_KEYCLOAK_SCOPE="profile"
+REACT_APP_KEYCLOAK_CLIENT_ID="exampleapp-ui"
 ```
 
-Keys are the same, but with "\_OIDC\_" replaced by "\_PLAIN_SUOMIFI\_".
+Keys are the same, but with "\_OIDC\_" replaced by "\_KEYCLOAK\_".
 
-### Config for getting Profile data (Helsinki-Profiili MVP only)
+### Config for getting Profile data
+
+#### Tunnistamo
 
 Use same config as above with Tunnistamo and add
 
 ```bash
-REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
 REACT_APP_OIDC_SCOPE="openid profile email https://api.hel.fi/auth/helsinkiprofile"
+REACT_APP_OIDC_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
 ```
 
-Profile BE url and audience are configured in main .env and there is no need to change them
+Tunnistamo does not use these, so leave them empty:
 
 ```bash
-REACT_APP_PROFILE_BACKEND_URL="<PROFILE_API_SERVER_URL>/graphql/"
-REACT_APP_PROFILE_AUDIENCE="https://api.hel.fi/auth/helsinkiprofile"
+REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
+REACT_APP_OIDC_API_TOKEN_PERMISSION=""
+```
+
+#### Helsinki-tunnistus
+
+Use same config as above with Helsinki-tunnistus and add
+
+```bash
+REACT_APP_KEYCLOAK_SCOPE="openid profile email"
+REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
+REACT_APP_KEYCLOAK_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
+```
+
+### Config for getting Example backend data
+
+#### Tunnistamo
+
+When getting api tokens, the Tunnistamo request does not need any props. But audiences are needed when getting the correct token in UI. Note that `REACT_APP_OIDC_SCOPE` must have scopes for the api token audiences when using Tunnistamo.
+
+```bash
+REACT_APP_OIDC_EXAMPLE_API_TOKEN_AUDIENCE="api token audience in Tunnistamo"
+```
+
+Tunnistamo does not use these, so leave them empty:
+
+```bash
+REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
+REACT_APP_OIDC_API_TOKEN_PERMISSION=""
+```
+
+#### Helsinki-tunnistus
+
+This server uses the audience, grant type and permission.
+
+```bash
+REACT_APP_KEYCLOAK_EXAMPLE_API_TOKEN_AUDIENCE="example api token audience in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_API_TOKEN_GRANT_TYPE="api token grant type in Helsinki-Tunnistus"
+REACT_APP_KEYCLOAK_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnistus"
 ```
 
 ## Docker
@@ -134,3 +174,17 @@ as `window._env_` object.
 
 Generation uses `react-scripts` internals, so values come from either environment variables or files (according
 [react-scripts documentation](https://create-react-app.dev/docs/adding-custom-environment-variables/#what-other-env-files-can-be-used)).
+
+## Logging in locally with Keycloak and using non-chromium browser
+
+Firefox and Safari are stricter with third-party cookies and therefore session checks in iframes fail with Firefox and Safari, when using localhost with Keycloak. Login works, but session checks fail immediately. There are no known issues with Tunnistamo.
+
+Third party cookies are not an issue, when service is deployed and servers have same top level domains like \*.hel.ninja. The problem occurs locally, because http://localhost:3000 is communicating with https://\*.dev.hel.ninja.
+
+More info about Firefox:
+https://developer.mozilla.org/en-US/docs/Web/Privacy/Storage_Access_Policy/Errors/CookiePartitionedForeign
+
+Issue can be temporarily resolved with:
+https://developer.mozilla.org/en-US/docs/Web/Privacy/State_Partitioning#disable_dynamic_state_partitioning
+
+With Safari, go to "Settings" -> "Privacy" -> uncheck "Prevent cross-site tracking"

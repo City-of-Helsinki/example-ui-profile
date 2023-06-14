@@ -1,5 +1,8 @@
 import to from 'await-to-js';
 import { UserManager } from 'oidc-client';
+import { waitFor } from '@testing-library/react';
+import { FetchMock } from 'jest-fetch-mock';
+
 import {
   EventListeners,
   configureClient,
@@ -22,7 +25,7 @@ import { getHttpPollerMockData } from '../__mocks__/http-poller';
 
 describe('Oidc client ', () => {
   let client: Client;
-  configureClient();
+  const clientConfig = configureClient();
   const mockMutator = mockMutatorGetterOidc();
   let eventListeners: EventListeners;
   let instance: UserManager;
@@ -104,13 +107,20 @@ describe('Oidc client ', () => {
       triggerEvent('accessTokenExpiring');
       expect(eventListeners.getCallCount(ClientEvent.TOKEN_EXPIRING)).toBe(1);
     });
-    it('userLoaded triggers CLIENT_AUTH_SUCCESS event', async () => {
-      expect(eventListeners.getCallCount(ClientEvent.CLIENT_AUTH_SUCCESS)).toBe(
-        0
-      );
-      triggerEvent('userLoaded');
-      expect(eventListeners.getCallCount(ClientEvent.CLIENT_AUTH_SUCCESS)).toBe(
-        1
+    it('userLoaded triggers USER_CHANGED event', async () => {
+      mockMutator.setUser(mockMutator.createValidUserData());
+      await to(client.init());
+      const validUserData = {
+        profile: {
+          ...mockMutator.getTokenParsed()
+        },
+        access_token: 'new_token_for_USER_CHANGED'
+      };
+      expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(0);
+      triggerEvent('userLoaded', validUserData);
+      expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(1);
+      expect((client.getUserTokens() as AnyObject).accessToken).toBe(
+        validUserData.access_token
       );
     });
   });
@@ -120,6 +130,17 @@ describe('Oidc client ', () => {
     });
     afterEach(() => {
       clearTests();
+    });
+
+    beforeAll(async () => {
+      const fetchMock: FetchMock = global.fetch;
+      fetchMock.enableMocks();
+    });
+    afterAll(() => {
+      fetchMock.disableMocks();
+    });
+    afterEach(() => {
+      fetchMock.resetMocks();
     });
 
     it('and returns always same promise and can be called multiple times ', async () => {
@@ -136,6 +157,48 @@ describe('Oidc client ', () => {
       expect(eventListeners.getCallCount(ClientEvent.STATUS_CHANGE)).toBe(2);
       expect(eventListeners.getCallCount(ClientEvent.AUTHORIZED)).toBe(1);
       expect(eventListeners.getCallCount(ClientEvent.UNAUTHORIZED)).toBe(0);
+    });
+    it('apiToken renewal is triggered after user is logged in and renewed', async () => {
+      const initialToken = 'initialToken';
+      const renewedToken = 'initialToken';
+      client.addApiTokens({
+        [clientConfig.exampleApiTokenAudience]: initialToken,
+        [clientConfig.profileApiTokenAudience]: initialToken
+      });
+      fetchMock.doMock(async req => {
+        const urlParams = await req.text();
+        const audience = new URLSearchParams(urlParams).get(
+          'audience'
+        ) as string;
+        return new Promise(resolve =>
+          setTimeout(async () => {
+            resolve({
+              status: 200,
+              body: JSON.stringify({
+                [audience]: renewedToken
+              })
+            });
+            // eslint-disable-next-line no-magic-numbers
+          }, 20)
+        );
+      });
+      await client.handleCallback();
+      expect(fetchMock).toHaveBeenCalledTimes(0);
+      expect(fetchMock.mock.results).toHaveLength(0);
+      triggerEvent('userLoaded', mockMutator.createValidUserData());
+      await waitFor(() => {
+        expect(fetchMock.mock.results).toHaveLength(2);
+        expect(client.getApiToken(clientConfig.exampleApiTokenAudience)).toBe(
+          renewedToken
+        );
+        expect(client.getApiToken(clientConfig.profileApiTokenAudience)).toBe(
+          renewedToken
+        );
+      });
+      triggerEvent('userLoaded', mockMutator.createValidUserData());
+      await waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledTimes(4);
+      });
     });
     it('failure results in UNAUTHORIZED status', async () => {
       expect(client.getStatus()).toBe(ClientStatus.NONE);
@@ -154,7 +217,7 @@ describe('Oidc client ', () => {
   });
   describe('setting autoSignIn=false ', () => {
     beforeEach(() => {
-      setClientConfig({ ...config.mvpConfig, autoSignIn: false });
+      setClientConfig({ ...config.tunnistamoConfig, autoSignIn: false });
       initTests();
     });
     afterEach(() => {

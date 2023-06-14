@@ -3,13 +3,11 @@ import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { waitFor } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
-import { AnyFunction } from '../../common';
 import { FetchStatus } from '../useApiAccessTokens';
 import useAuthorizedApiRequests, {
   AuthorizedApiActions,
   AuthorizedRequest
 } from '../useAuthorizedApiRequests';
-import { ApiAccessTokenProvider } from '../../components/ApiAccessTokenProvider';
 import initMockResponses, {
   MockResponseProps
 } from '../../tests/backend.test.helper';
@@ -20,11 +18,13 @@ import {
   resetAndSetMockApiAccessTokensHookData
 } from '../__mocks__/useApiAccessTokens';
 import { getFetchMockLastCallAuthenticationHeader } from '../../tests/common.test.helper';
-import { setEnv, mockApiTokenResponse } from '../../tests/client.test.helper';
+import { mockApiTokenResponse } from '../../tests/client.test.helper';
+import { configureClient } from '../../client/__mocks__';
 
 type TestProps = {
   autoFetchProp: boolean;
   data?: string;
+  audience?: string;
 };
 type TestResponseData = {
   something: boolean;
@@ -36,12 +36,12 @@ jest.mock('../../apiAccessTokens/useApiAccessTokens');
 describe('useAuthorizedApiRequests hook ', () => {
   let authorizedApiActions: AuthorizedApiActions<TestResponseData, TestProps>;
   let dom: ReactWrapper;
-  let restoreEnv: AnyFunction;
   let autoFetch = false;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
   const fetchMock: FetchMock = global.fetch;
-  const testAudience = 'test-audience';
+  const config = configureClient();
+  const testAudience = config.profileApiTokenAudience;
   const noDataText = 'NO_DATA';
   const requestUrl = 'http://localhost/';
   const responseData: TestResponseData = { something: true };
@@ -56,7 +56,7 @@ describe('useAuthorizedApiRequests hook ', () => {
 
   const req: Request = async p => {
     const headers = new Headers();
-    headers.append('Authorization', `Bearer ${p.apiTokens[testAudience]}`);
+    headers.append('Authorization', `Bearer ${p.token}`);
     const fetchResponse = await fetch(requestUrl, {
       method: 'POST',
       headers
@@ -69,9 +69,16 @@ describe('useAuthorizedApiRequests hook ', () => {
     authorizedApiActions = useAuthorizedApiRequests<
       TestResponseData,
       TestProps
-    >(req, autoFetch ? { data: { autoFetchProp: true } } : undefined);
+    >(
+      req,
+      autoFetch
+        ? {
+            autoFetchProps: { data: { autoFetchProp: true } },
+            audience: testAudience
+          }
+        : { audience: testAudience }
+    );
     const data = authorizedApiActions.getData();
-    const tokens = authorizedApiActions.getTokens();
     const [, setNumber] = useState<number>(0);
     forceUpdate = setNumber;
     return (
@@ -82,16 +89,11 @@ describe('useAuthorizedApiRequests hook ', () => {
         <div id="request-status">{authorizedApiActions.getRequestStatus()}</div>
         <div id="status">{authorizedApiActions.getStatus()}</div>
         <div id="data">{data ? JSON.stringify(data) : noDataText}</div>
-        <div id="tokens">{tokens ? JSON.stringify(tokens) : noDataText}</div>
       </div>
     );
   };
 
-  const TestWrapper = (): React.ReactElement => (
-    <ApiAccessTokenProvider>
-      <HookTester />
-    </ApiAccessTokenProvider>
-  );
+  const TestWrapper = (): React.ReactElement => <HookTester />;
 
   const setUpTest = async (
     props: {
@@ -151,13 +153,9 @@ describe('useAuthorizedApiRequests hook ', () => {
     });
 
   beforeAll(async () => {
-    restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience
-    });
     fetchMock.enableMocks();
   });
   afterAll(() => {
-    restoreEnv();
     fetchMock.disableMocks();
   });
   afterEach(() => {
@@ -188,7 +186,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       expect(authHeader).toBe(`Bearer ${validTokens[testAudience]}`);
       expect(requestTracker).toHaveBeenCalledTimes(1);
       expect(requestTracker).lastCalledWith({
-        apiTokens: validTokens,
+        token: validTokens[testAudience],
         ...autoFetchProp
       });
     });
@@ -226,7 +224,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       expect(getDataFromDom()).toEqual(responseData);
       expect(requestTracker).toHaveBeenCalledTimes(1);
       expect(requestTracker).lastCalledWith({
-        apiTokens: validTokens,
+        token: validTokens[testAudience],
         ...firstCallProps
       });
       authorizedApiActions.request();
@@ -237,7 +235,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       );
       expect(requestTracker).toHaveBeenCalledTimes(2);
       expect(requestTracker).lastCalledWith({
-        apiTokens: validTokens
+        token: validTokens[testAudience]
       });
     });
   });

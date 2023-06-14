@@ -4,7 +4,6 @@ import { act } from 'react-dom/test-utils';
 import { waitFor } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 import { setEnv } from '../../tests/client.test.helper';
-import { ApiAccessTokenProvider } from '../../components/ApiAccessTokenProvider';
 import { useBackendWithApiTokens, BackendActions } from '../backend';
 
 import { AnyFunction } from '../../common';
@@ -18,13 +17,14 @@ import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 import initMockResponses, {
   MockResponseProps
 } from '../../tests/backend.test.helper';
+import { configureClient } from '../../client/__mocks__';
 
 jest.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
   const fetchMock: FetchMock = global.fetch;
-  const testAudience = 'api-audience';
+  configureClient();
   const backendUrl = 'https://localhost/';
   const validResponseData = {
     pet_name: 'petName'
@@ -43,9 +43,9 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
   };
 
   const TestWrapper = (): React.ReactElement => (
-    <ApiAccessTokenProvider>
+    <>
       <HookTester />
-    </ApiAccessTokenProvider>
+    </>
   );
 
   const setUpTest = async (
@@ -83,7 +83,6 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_BACKEND_AUDIENCE: testAudience,
       REACT_APP_BACKEND_URL: backendUrl
     });
     fetchMock.enableMocks();

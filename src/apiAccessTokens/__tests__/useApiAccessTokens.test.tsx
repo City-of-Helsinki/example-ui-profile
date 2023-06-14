@@ -11,10 +11,9 @@ import {
   mockApiTokenResponse,
   logoutUser,
   clearApiTokens,
-  createApiTokenFetchPayload,
-  setEnv
+  createApiTokenFetchPayload
 } from '../../tests/client.test.helper';
-import { AnyFunction, AnyObject } from '../../common';
+import { AnyObject } from '../../common';
 import {
   useApiAccessTokens,
   ApiAccessTokenActions,
@@ -26,13 +25,13 @@ describe('useApiAccessTokens hook ', () => {
   const fetchMock: FetchMock = global.fetch;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
-  const testAudience = 'test-audience';
+  const config = configureClient();
+  const testAudience = config.profileApiTokenAudience;
   let apiTokenActions: ApiAccessTokenActions;
   let dom: ReactWrapper;
-  let restoreEnv: AnyFunction;
 
   const HookTester = (): React.ReactElement => {
-    apiTokenActions = useApiAccessTokens();
+    apiTokenActions = useApiAccessTokens(testAudience);
     return <div id="api-token-status">{apiTokenActions.getStatus()}</div>;
   };
 
@@ -51,14 +50,10 @@ describe('useApiAccessTokens hook ', () => {
   };
 
   beforeAll(async () => {
-    restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience
-    });
     fetchMock.enableMocks();
     await client.init();
   });
   afterAll(() => {
-    restoreEnv();
     fetchMock.disableMocks();
   });
   afterEach(() => {
@@ -85,16 +80,16 @@ describe('useApiAccessTokens hook ', () => {
     await act(async () => {
       await setUpTest();
       await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getTokens()).toBeUndefined();
+      expect(apiTokenActions.getToken()).toBeUndefined();
       expect(apiTokenActions.getStatus() === 'unauthorized');
-      const tokens = mockApiTokenResponse();
+      const tokens = mockApiTokenResponse({ audience: testAudience });
       await setUser({});
       await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      expect(apiTokenActions.getTokens()).toEqual(tokens);
+      expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
       logoutUser(client);
       await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getTokens()).toBeUndefined();
+      expect(apiTokenActions.getToken()).toBeUndefined();
     });
   });
 
@@ -102,28 +97,30 @@ describe('useApiAccessTokens hook ', () => {
     await act(async () => {
       await setUpTest();
       await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getTokens()).toBeUndefined();
+      expect(apiTokenActions.getToken()).toBeUndefined();
       expect(apiTokenActions.getStatus() === 'unauthorized');
       mockApiTokenResponse({ returnError: true });
       await setUser({});
       await waitFor(() => expect(getApiTokenStatus()).toBe('error'));
-      expect(apiTokenActions.getTokens()).toBeUndefined();
-      const tokens = mockApiTokenResponse();
-      apiTokenActions.fetch(createApiTokenFetchPayload());
+      expect(apiTokenActions.getToken()).toBeUndefined();
+      const tokens = mockApiTokenResponse({ audience: testAudience });
+      apiTokenActions.fetch(
+        createApiTokenFetchPayload({ audience: testAudience })
+      );
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      expect(apiTokenActions.getTokens()).toEqual(tokens);
+      expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
     });
   });
 
   it('api token is auto fetched when user is authorized', async () => {
     await act(async () => {
+      const tokens = mockApiTokenResponse({ audience: testAudience });
       await setUpTest({
         user: {}
       });
-      const tokens = mockApiTokenResponse();
       await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      expect(apiTokenActions.getTokens()).toEqual(tokens);
+      expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
     });
   });
   it('api tokens are cleared when user logs out', async () => {
@@ -135,6 +132,7 @@ describe('useApiAccessTokens hook ', () => {
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
       logoutUser(client);
       await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
+      expect(apiTokenActions.getToken()).toBeUndefined();
     });
   });
 });

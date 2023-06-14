@@ -118,11 +118,14 @@ const Header = (): React.ReactElement => {
     />
   );
 
-  // <Navigation.Row> cannot not handle null/undefined as children.
-  // That is why if..else cannot be used in <Navigation.Row>
-  const links = currentConfig.hasApiTokenSupport
-    ? [frontPageLink, accessTokenLink, userTokenLink, profileLink, backendLink]
-    : [frontPageLink, userTokenLink, userInfoLink];
+  const links = [
+    frontPageLink,
+    accessTokenLink,
+    userTokenLink,
+    userInfoLink,
+    profileLink,
+    backendLink
+  ];
 
   return (
     <Navigation

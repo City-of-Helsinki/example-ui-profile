@@ -15,7 +15,7 @@ import useAuthorizedApiRequests, {
   AuthorizedRequest,
   AuthorizedApiActions
 } from '../apiAccessTokens/useAuthorizedApiRequests';
-import { JWTPayload } from '../client';
+import { getClientConfig } from '../client';
 
 let profileGqlClient: GraphQLClient;
 
@@ -77,7 +77,7 @@ export async function getProfileData(
   if (!client) {
     return {
       error: new Error(
-        'getProfileGqlClient returned undefined. Missing ApiToken for env.REACT_APP_PROFILE_AUDIENCE or missing env.REACT_APP_PROFILE_BACKEND_URL '
+        'getProfileGqlClient returned undefined. Missing ApiToken for env.REACT_APP_<oidc provider>_PROFILE_API_TOKEN_AUDIENCE or missing env.REACT_APP_PROFILE_BACKEND_URL '
       )
     };
   }
@@ -109,14 +109,6 @@ export async function getProfileData(
   return result;
 }
 
-export function getProfileApiToken(apiTokens: JWTPayload): string | undefined {
-  const tokenKey = window._env_.REACT_APP_PROFILE_AUDIENCE;
-  if (!tokenKey) {
-    return undefined;
-  }
-  return apiTokens && apiTokens[tokenKey];
-}
-
 export async function clearGraphQlClient(): Promise<void> {
   const client = getProfileGqlClient();
   if (client) {
@@ -126,7 +118,7 @@ export async function clearGraphQlClient(): Promise<void> {
 }
 
 const executeAPIAction: Request = async options => {
-  const result = await getProfileData(getProfileApiToken(options.apiTokens));
+  const result = await getProfileData(options.token);
   const resultAsError = result as GraphQLClientError;
   if (resultAsError.error) {
     throw resultAsError.error;
@@ -138,5 +130,9 @@ const executeAPIAction: Request = async options => {
 
 export function useProfileWithApiTokens(): ProfileActions {
   const req: Request = useCallback(async props => executeAPIAction(props), []);
-  return useAuthorizedApiRequests(req, {});
+  const config = getClientConfig();
+  return useAuthorizedApiRequests(req, {
+    audience: config.profileApiTokenAudience,
+    autoFetchProps: {}
+  });
 }

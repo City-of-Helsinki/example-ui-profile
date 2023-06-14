@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import { waitFor } from '@testing-library/react';
@@ -14,10 +14,6 @@ import {
   logoutUser
 } from '../../tests/client.test.helper';
 import {
-  ApiAccessTokenContext,
-  ApiAccessTokenProvider
-} from '../../components/ApiAccessTokenProvider';
-import {
   ProfileData,
   ProfileActions,
   useProfileWithApiTokens
@@ -28,73 +24,33 @@ import {
   mockProfileResponse
 } from '../../tests/profile.test.helper';
 import { AnyObject, AnyFunction } from '../../common';
-import {
-  FetchStatus,
-  ApiAccessTokenActions
-} from '../../apiAccessTokens/useApiAccessTokens';
+import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 
 describe('Profile.ts useProfileWithApiTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/', autoSignIn: true });
   const fetchMock: FetchMock = global.fetch;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
-  const testAudience = 'api-audience';
   const profileBackendUrl = 'https://localhost/profileGraphql/';
   let profileActions: ProfileActions;
-  let apiTokenActions: ApiAccessTokenActions;
   let dom: ReactWrapper;
   let restoreEnv: AnyFunction;
 
   const ProfileHookTester = (): React.ReactElement => {
     profileActions = useProfileWithApiTokens();
-    return <div id="request-status">{profileActions.getRequestStatus()}</div>;
-  };
-
-  const ApiTokenHookTester = (): React.ReactElement => {
-    apiTokenActions = useContext(
-      ApiAccessTokenContext
-    ) as ApiAccessTokenActions;
-    return <div id="api-token-status">{apiTokenActions.getStatus()}</div>;
+    return (
+      <div>
+        <div id="request-status">{profileActions.getRequestStatus()}</div>;
+        <div id="api-token-status">{profileActions.getApiTokenStatus()}</div>;
+      </div>
+    );
   };
 
   const TestWrapper = (): React.ReactElement => (
-    <ApiAccessTokenProvider>
-      <ApiTokenHookTester />
+    <>
       <ProfileHookTester />
-    </ApiAccessTokenProvider>
+    </>
   );
-
-  type ErrorCatcherProps = React.PropsWithChildren<{
-    callback: (err: Error) => void;
-  }>;
-  class ErrorCatcher extends React.Component<
-    ErrorCatcherProps,
-    { error?: Error }
-  > {
-    constructor(props: ErrorCatcherProps) {
-      super(props);
-      this.state = { error: undefined };
-    }
-
-    componentDidCatch(error: Error): void {
-      // eslint-disable-next-line no-console
-      console.log(`Note: following error is expected: ${error.message}`);
-      this.setState({ error });
-      this.props.callback(error);
-    }
-
-    render(): React.ReactElement {
-      return (
-        <div>
-          {this.state.error ? (
-            <div id="bound-error">{this.state.error.message}</div>
-          ) : (
-            this.props.children
-          )}
-        </div>
-      );
-    }
-  }
 
   const setUser = async (user: AnyObject): Promise<void> =>
     setUpUser(user, mockMutator, client);
@@ -122,7 +78,6 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience,
       REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
     });
     fetchMock.enableMocks();
@@ -157,12 +112,6 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     dom.update();
     const el = dom.find('#api-token-status').at(0);
     return el && el.length ? (el.text() as FetchStatus) : undefined;
-  };
-
-  const getErrorMessage = (): string | undefined => {
-    dom.update();
-    const el = dom.find('#bound-error').at(0);
-    return el && el.length ? el.text() : undefined;
   };
 
   it('depends on apiAccessToken hook and changes with it', async () => {
@@ -234,22 +183,5 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
       await waitFor(() => expect(getProfileStatus()).toBe('error'));
       expect(profileActions.getData()).toBeUndefined();
     });
-  });
-
-  it('throws an error when rendered without apiToken context', async () => {
-    let errorCatched: Error | undefined;
-    // notify console viewer that error is ok
-    // eslint-disable-next-line no-console
-    console.log('Note: Error will be thrown...');
-    dom = mount(
-      <ErrorCatcher
-        callback={(err: Error): void => {
-          errorCatched = err;
-        }}>
-        <ProfileHookTester />
-      </ErrorCatcher>
-    );
-    expect(errorCatched).toBeDefined();
-    expect(getErrorMessage()).toBeDefined();
   });
 });

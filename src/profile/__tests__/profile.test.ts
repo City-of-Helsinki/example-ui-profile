@@ -1,7 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import {
   convertQueryToData,
-  getProfileApiToken,
   getProfileData,
   getProfileGqlClient,
   ProfileQueryResult
@@ -9,7 +8,6 @@ import {
 import { getClient } from '../../client/oidc-react';
 import { mockMutatorGetterOidc } from '../../client/__mocks__/oidc-react-mock';
 import {
-  setUpUser,
   clearApiTokens,
   logoutUser,
   setEnv
@@ -22,39 +20,35 @@ import {
 } from '../../tests/profile.test.helper';
 import { configureClient } from '../../client/__mocks__';
 import { FetchError } from '../../client';
-import { AnyObject, AnyFunction } from '../../common';
+import { AnyFunction } from '../../common';
 import { GraphQLClientError } from '../../graphql/graphqlClient';
 
 describe('Profile.ts', () => {
-  configureClient();
+  const config = configureClient();
   const fetchMock: FetchMock = global.fetch;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   let restoreEnv: AnyFunction;
-  const testAudience = 'api-audience';
+  const testAudience = config.profileApiTokenAudience;
   const profileBackendUrl = 'https://localhost/profileGraphql/';
   let lastRequest: Request;
 
   const validAPiToken = { [testAudience]: 'valid-api-token' };
 
-  const setUser = async (user: AnyObject): Promise<void> =>
-    setUpUser(user, mockMutator, client);
-
   const setValidApiToken = (): string => {
     client.addApiTokens(validAPiToken);
-    return getProfileApiToken(validAPiToken) as string;
+    return validAPiToken[testAudience];
   };
 
   const isApiTokenInRequest = (req: Request): boolean => {
     const { headers } = req;
     const authHeader = headers.get('Authorization');
-    const profileToken = getProfileApiToken(validAPiToken);
+    const profileToken = validAPiToken[testAudience];
     return !!(authHeader && authHeader.includes(`Bearer ${profileToken}`));
   };
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_AUDIENCE: testAudience,
       REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
     });
     fetchMock.enableMocks();
@@ -74,14 +68,6 @@ describe('Profile.ts', () => {
   beforeEach(() => {
     logoutUser(client);
     clearApiTokens(client);
-  });
-
-  it('getProfileApiToken() returns api token or undefined if api token is not set', async () => {
-    await setUser({});
-    const token = getProfileApiToken({});
-    expect(token).toBeUndefined();
-    const tokenValue = setValidApiToken();
-    expect(getProfileApiToken(validAPiToken)).toEqual(tokenValue);
   });
 
   it('convertQueryToData() extracts actual profile data from graphql response or return undefined', async () => {

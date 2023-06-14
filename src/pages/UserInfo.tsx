@@ -5,10 +5,10 @@ import LoginInfo from '../components/LoginInfo';
 import AuthenticatingInfo from '../components/AuthenticatingInfo';
 import WithAuth from '../client/WithAuth';
 
-const PlainSuomiFiUserInfo = (): React.ReactElement => (
+const UserInfo = (): React.ReactElement => (
   <PageContent>
     {WithAuth(ClientGetUser, LoginInfo, AuthenticatingInfo)}
   </PageContent>
 );
 
-export default PlainSuomiFiUserInfo;
+export default UserInfo;

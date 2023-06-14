@@ -34,9 +34,9 @@ export type Client = {
   getApiAccessToken: (
     options: FetchApiTokenOptions
   ) => Promise<JWTPayload | FetchError>;
-  getApiTokens: () => JWTPayload;
+  getApiToken: (audience: string) => string | undefined;
   addApiTokens: (newToken: JWTPayload) => JWTPayload;
-  removeApiToken: (name: string) => JWTPayload;
+  removeApiToken: (audience: string) => JWTPayload;
   getUserTokens: () => Record<string, string | undefined> | undefined;
 };
 
@@ -50,9 +50,7 @@ export const ClientStatus = {
 export type ClientStatusId = typeof ClientStatus[keyof typeof ClientStatus];
 
 export type FetchApiTokenOptions = {
-  grantType: string;
   audience: string;
-  permission: string;
 };
 
 export type FetchApiTokenConfiguration = FetchApiTokenOptions & {
@@ -73,7 +71,7 @@ export const ClientEvent = {
   STATUS_CHANGE: 'STATUS_CHANGE',
   AUTHORIZATION_TERMINATED: 'AUTHORIZATION_TERMINATED',
   LOGGING_OUT: 'LOGGING_OUT',
-  CLIENT_AUTH_SUCCESS: 'CLIENT_AUTH_SUCCESS',
+  USER_CHANGED: 'USER_CHANGED',
   ...ClientStatus
 } as const;
 
@@ -150,13 +148,25 @@ export interface ClientConfig {
    */
   path: string;
   /**
-   * does the server, this config is for, provide api tokens
-   */
-  hasApiTokenSupport: boolean;
-  /**
    * label of this config shown in the UI
    */
   label: string;
+  /**
+   * api token audience for example API
+   */
+  exampleApiTokenAudience: string;
+  /**
+   * api token audience for profile API
+   */
+  profileApiTokenAudience: string;
+  /**
+   * grantType sent to the api token server when getting tokens
+   */
+  apiGrantType: string;
+  /**
+   * permission sent to the api token server when getting tokens
+   */
+  apiPermission: string;
 }
 
 type EventHandlers = {
@@ -178,7 +188,7 @@ export type ClientFactory = {
   fetchApiToken: (
     options: FetchApiTokenConfiguration
   ) => Promise<JWTPayload | FetchError>;
-  getApiTokens: Client['getApiTokens'];
+  getApiToken: Client['getApiToken'];
   addApiTokens: Client['addApiTokens'];
   removeApiToken: Client['removeApiToken'];
 } & EventHandlers;
@@ -262,25 +272,61 @@ export function createClient(): ClientFactory {
     return true;
   };
 
-  const getApiTokens: ClientFactory['getApiTokens'] = () => tokenStorage;
+  const getApiToken: ClientFactory['getApiToken'] = audience =>
+    tokenStorage[audience];
+
   const addApiTokens: ClientFactory['addApiTokens'] = newToken => {
     Object.assign(tokenStorage, newToken);
     return tokenStorage;
   };
-  const removeApiToken: ClientFactory['removeApiToken'] = name => {
-    delete tokenStorage[name];
+
+  const removeApiToken: ClientFactory['removeApiToken'] = audience => {
+    delete tokenStorage[audience];
     return tokenStorage;
   };
 
+  const saveReturnedApiTokens = (
+    tokenData: JWTPayload,
+    audience: string
+  ): JWTPayload => {
+    const isSingleTokenResponse = !!tokenData['access_token'];
+    const storageValue = isSingleTokenResponse
+      ? tokenData['access_token']
+      : tokenData[audience];
+
+    const storageData = { [audience]: storageValue } as JWTPayload;
+    addApiTokens(storageData);
+    if (!isSingleTokenResponse) {
+      Object.keys(tokenData).forEach(currentKey => {
+        if (currentKey === audience) {
+          return;
+        }
+        const token = tokenData[currentKey];
+        if (token) {
+          addApiTokens({ [currentKey]: token });
+        }
+      });
+    }
+    return storageData;
+  };
+
   const fetchApiToken: ClientFactory['fetchApiToken'] = async options => {
+    const currentToken = getApiToken(options.audience);
+    if (currentToken) {
+      return Promise.resolve({ [options.audience]: currentToken });
+    }
     const myHeaders = new Headers();
     myHeaders.append('Authorization', `Bearer ${options.accessToken}`);
     myHeaders.append('Content-Type', 'application/x-www-form-urlencoded');
 
     const urlencoded = new URLSearchParams();
-    urlencoded.append('grant_type', options.grantType);
     urlencoded.append('audience', options.audience);
-    urlencoded.append('permission', options.permission);
+    if (config.apiGrantType) {
+      urlencoded.append('grant_type', config.apiGrantType);
+    }
+    if (config.apiPermission) {
+      urlencoded.append('permission', config.apiPermission);
+    }
 
     const requestOptions = {
       method: 'POST',
@@ -312,9 +358,7 @@ export function createClient(): ClientFactory {
         message: 'Returned data is not valid json'
       } as FetchError;
     }
-    const jwt = json as JWTPayload;
-    addApiTokens(jwt);
-    return jwt;
+    return saveReturnedApiTokens(json, options.audience);
   };
 
   return {
@@ -329,7 +373,7 @@ export function createClient(): ClientFactory {
     isInitialized,
     isAuthenticated,
     fetchApiToken,
-    getApiTokens,
+    getApiToken,
     addApiTokens,
     removeApiToken
   };
