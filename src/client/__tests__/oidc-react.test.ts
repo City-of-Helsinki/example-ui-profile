@@ -217,7 +217,7 @@ describe('Oidc client ', () => {
   });
   describe('setting autoSignIn=false ', () => {
     beforeEach(() => {
-      setClientConfig({ ...config.tunnistamoConfig, autoSignIn: false });
+      setClientConfig({ ...config.keycloakConfig, autoSignIn: false });
       initTests();
     });
     afterEach(() => {

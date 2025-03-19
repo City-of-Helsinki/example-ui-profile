@@ -35,7 +35,7 @@ export const mockApiTokenResponse = (
   const fetchMock: FetchMock = global.fetch;
   const tokenKey =
     audience ||
-    window._env_.REACT_APP_OIDC_PROFILE_API_TOKEN_AUDIENCE ||
+    window._env_.REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE ||
     'unknown';
   const tokens: JWTPayload = { [tokenKey]: 'apiToken' };
   if (additionalTokenAudience) {

@@ -19,41 +19,38 @@ function envValueToBoolean(
   return defaultValue;
 }
 
-function createConfigFromEnv(
-  source: 'OIDC' | 'KEYCLOAK'
-): Partial<ClientConfig> {
-  const url = String(window._env_[`REACT_APP_${source}_URL`]);
-  const realm = String(window._env_[`REACT_APP_${source}_REALM`]);
+function createConfigFromEnv(): Partial<ClientConfig> {
+  const url = String(window._env_[`REACT_APP_KEYCLOAK_URL`]);
+  const realm = String(window._env_[`REACT_APP_KEYCLOAK_REALM`]);
   const tokenExchangePath =
-    window._env_[`REACT_APP_${source}_TOKEN_EXCHANGE_PATH`];
+    window._env_[`REACT_APP_KEYCLOAK_TOKEN_EXCHANGE_PATH`];
   const exampleApiTokenAudience =
-    window._env_[`REACT_APP_${source}_EXAMPLE_API_TOKEN_AUDIENCE`];
+    window._env_[`REACT_APP_KEYCLOAK_EXAMPLE_API_TOKEN_AUDIENCE`];
   const profileApiTokenAudience =
-    window._env_[`REACT_APP_${source}_PROFILE_API_TOKEN_AUDIENCE`];
-  const scope = window._env_[`REACT_APP_${source}_SCOPE`];
-  const apiGrantType = window._env_[`REACT_APP_${source}_API_TOKEN_GRANT_TYPE`];
-  const apiPermission =
-    window._env_[`REACT_APP_${source}_API_TOKEN_PERMISSION`];
+    window._env_[`REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE`];
+  const scope = window._env_[`REACT_APP_KEYCLOAK_SCOPE`];
+  const apiGrantType = window._env_[`REACT_APP_KEYCLOAK_API_TOKEN_GRANT_TYPE`];
+  const apiPermission = window._env_[`REACT_APP_KEYCLOAK_API_TOKEN_PERMISSION`];
   return {
     realm,
     url,
     authority: realm ? `${url}/realms/${realm}` : url,
-    clientId: String(window._env_[`REACT_APP_${source}_CLIENT_ID`]),
-    callbackPath: String(window._env_[`REACT_APP_${source}_CALLBACK_PATH`]),
-    logoutPath: window._env_[`REACT_APP_${source}_LOGOUT_PATH`] || '/',
-    silentAuthPath: window._env_[`REACT_APP_${source}_SILENT_AUTH_PATH`],
-    responseType: window._env_[`REACT_APP_${source}_RESPONSE_TYPE`],
+    clientId: String(window._env_[`REACT_APP_KEYCLOAK_CLIENT_ID`]),
+    callbackPath: String(window._env_[`REACT_APP_KEYCLOAK_CALLBACK_PATH`]),
+    logoutPath: window._env_[`REACT_APP_KEYCLOAK_LOGOUT_PATH`] || '/',
+    silentAuthPath: window._env_[`REACT_APP_KEYCLOAK_SILENT_AUTH_PATH`],
+    responseType: window._env_[`REACT_APP_KEYCLOAK_RESPONSE_TYPE`],
     scope,
     autoSignIn: envValueToBoolean(
-      window._env_[`REACT_APP_${source}_AUTO_SIGN_IN`],
+      window._env_[`REACT_APP_KEYCLOAK_AUTO_SIGN_IN`],
       true
     ),
     automaticSilentRenew: envValueToBoolean(
-      window._env_[`REACT_APP_${source}_AUTO_SILENT_RENEW`],
+      window._env_[`REACT_APP_KEYCLOAK_AUTO_SILENT_RENEW`],
       true
     ),
     enableLogging: envValueToBoolean(
-      window._env_[`REACT_APP_${source}_LOGGING`],
+      window._env_[`REACT_APP_KEYCLOAK_LOGGING`],
       false
     ),
     tokenExchangePath,
@@ -64,43 +61,21 @@ function createConfigFromEnv(
   };
 }
 
-const tunnistamoConfig = {
-  ...createConfigFromEnv('OIDC'),
-  path: '/tunnistamo',
-  label: 'Tunnistamo'
-} as ClientConfig;
-
 const uiConfig: { profileUIUrl: string } = {
   profileUIUrl: String(window._env_.REACT_APP_PROFILE_UI_URL)
 };
 
 const keycloakConfig = {
-  ...createConfigFromEnv('KEYCLOAK'),
+  ...createConfigFromEnv(),
   path: '/helsinkitunnistus',
   label: 'Helsinki-Tunnistus'
 } as ClientConfig;
 
 const isCallbackUrl = (route: string): boolean =>
-  route === tunnistamoConfig.callbackPath ||
   route === keycloakConfig.callbackPath;
 
-const getConfigFromRoute = (route: string): ClientConfig | undefined => {
-  if (route.length < 2) {
-    return undefined;
-  }
-  if (
-    route.includes(tunnistamoConfig.path) ||
-    route === tunnistamoConfig.callbackPath
-  ) {
-    return tunnistamoConfig;
-  }
-  return keycloakConfig;
-};
-
 export default {
-  tunnistamoConfig,
   ui: uiConfig,
   keycloakConfig,
-  isCallbackUrl,
-  getConfigFromRoute
+  isCallbackUrl
 };

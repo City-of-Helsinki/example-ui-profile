@@ -4,22 +4,19 @@ import { useLocation } from 'react-router';
 import config from '../config';
 import OidcCallback from '../client/OidcCallback';
 import { getClient } from '../client/oidc-react';
-import { ClientConfig } from '../client';
 
 const HandleCallback = (
   props: React.PropsWithChildren<unknown>
 ): React.ReactElement => {
+  console.log('ayy lammo', config.keycloakConfig);
   const location = useLocation();
   const client = getClient();
   const { children } = props;
   const isCallbackUrl = config.isCallbackUrl(location.pathname);
   if (!client.isAuthenticated() && isCallbackUrl) {
-    const configFromRoute = config.getConfigFromRoute(
-      location.pathname
-    ) as ClientConfig;
     return (
       <OidcCallback
-        successRedirect={configFromRoute.path}
+        successRedirect={config.keycloakConfig.path}
         failureRedirect="/authError"
       />
     );

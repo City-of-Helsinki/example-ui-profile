@@ -1,50 +1,43 @@
 # Example-profile-ui
 
-Example UI application handles logins to OIDC provider and loads Helsinki Profile. There are two types of logins: Tunnistamo and Helsinki-tunnistus. User chooses one on the index page.
+Example UI application handles logins to OIDC provider and loads Helsinki
+Profile.
 
-App uses [oidc-react.js](https://github.com/IdentityModel/oidc-client-js/wiki) for all calls to the OIDC provider. Library is wrapped with "client" (client/index.ts) to unify connections to Tunnistamo, Keycloak server and Profiili API.
+App uses [oidc-react.js](https://github.com/IdentityModel/oidc-client-js/wiki) for all calls to the OIDC provider. Library is
+wrapped with "client" (client/index.ts) to unify connections to Keycloak
+server and Profiili API.
 
 Included in this demo app:
 
 - two login types
 - hooks for easy usage with React
 - redux store listening a client
-- HOC component listening a client and showing different content for authorized and unauthorized users.
+- HOC component listening a client and showing different content for authorized
+  and unauthorized users.
 - getting API token and using it to get Profile
 
-Client dispatches events and trigger changes which then trigger re-rendering of the components using the client.
+Client dispatches events and trigger changes which then trigger re-rendering of
+the components using the client.
 
 ## Config
 
 Configs are in .env -files.
 
-Tunnistamo does not support silent login checks (it uses only sessionStorage) so REACT_APP_OIDC_AUTO_SIGN_IN must be 'false'. It renews access tokens so REACT_APP_OIDC_SILENT_AUTH_PATH must be changed to '/' to prevent errors for unknown redirect url.
-
 Config can also be overridden for command line:
 
 ```bash
-REACT_APP_OIDC_URL="https://foo.bar"
+REACT_APP_KEYCLOAK_URL="https://foo.bar"
 ```
 
 ### Environment variables
 
-Scripts generates first environment variables to `public/env-config.js` with `scripts/update-runtime-env.ts`, which contains the
-actual used variables when running the app. App is not using CRA's default `process.env` way to refer of variables but
-`window._env_` object.
+Scripts generates first environment variables to `public/env-config.js` with
+`scripts/update-runtime-env.ts`, which contains the actual used variables when
+running the app. App is not using CRA's default `process.env` way to refer of
+variables but `window._env_` object.
 
 Note that running built application locally you need to generate also `public/env-config.js` file. It can be done with
 `yarn update-runtime-env`. By default it's generated for development environment if no `NODE_ENV` is set.
-
-### Config for Tunnistamo
-
-Settings when using Tunnistamo authentication:
-
-```bash
-REACT_APP_OIDC_URL="<SERVER_URL>/auth"
-REACT_APP_OIDC_REALM=""
-REACT_APP_OIDC_SCOPE="profile"
-REACT_APP_OIDC_CLIENT_ID="exampleapp-ui"
-```
 
 ### Config for Helsinki-tunnistus
 
@@ -61,22 +54,6 @@ Keys are the same, but with "\_OIDC\_" replaced by "\_KEYCLOAK\_".
 
 ### Config for getting Profile data
 
-#### Tunnistamo
-
-Use same config as above with Tunnistamo and add
-
-```bash
-REACT_APP_OIDC_SCOPE="openid profile email https://api.hel.fi/auth/helsinkiprofile"
-REACT_APP_OIDC_PROFILE_API_TOKEN_AUDIENCE="https://api.hel.fi/auth/helsinkiprofiledev"
-```
-
-Tunnistamo does not use these, so leave them empty:
-
-```bash
-REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
-REACT_APP_OIDC_API_TOKEN_PERMISSION=""
-```
-
 #### Helsinki-tunnistus
 
 Use same config as above with Helsinki-tunnistus and add
@@ -89,21 +66,6 @@ REACT_APP_KEYCLOAK_API_TOKEN_PERMISSION="api token permission in Helsinki-Tunnis
 ```
 
 ### Config for getting Example backend data
-
-#### Tunnistamo
-
-When getting api tokens, the Tunnistamo request does not need any props. But audiences are needed when getting the correct token in UI. Note that `REACT_APP_OIDC_SCOPE` must have scopes for the api token audiences when using Tunnistamo.
-
-```bash
-REACT_APP_OIDC_EXAMPLE_API_TOKEN_AUDIENCE="api token audience in Tunnistamo"
-```
-
-Tunnistamo does not use these, so leave them empty:
-
-```bash
-REACT_APP_OIDC_API_TOKEN_GRANT_TYPE=""
-REACT_APP_OIDC_API_TOKEN_PERMISSION=""
-```
 
 #### Helsinki-tunnistus
 
@@ -177,9 +139,13 @@ Generation uses `react-scripts` internals, so values come from either environmen
 
 ## Logging in locally with Keycloak and using non-chromium browser
 
-Firefox and Safari are stricter with third-party cookies and therefore session checks in iframes fail with Firefox and Safari, when using localhost with Keycloak. Login works, but session checks fail immediately. There are no known issues with Tunnistamo.
+Firefox and Safari are stricter with third-party cookies and therefore session
+checks in iframes fail with Firefox and Safari, when using localhost with
+Keycloak. Login works, but session checks fail immediately.
 
-Third party cookies are not an issue, when service is deployed and servers have same top level domains like \*.hel.ninja. The problem occurs locally, because http://localhost:3000 is communicating with https://\*.dev.hel.ninja.
+Third party cookies are not an issue, when service is deployed and servers have
+same top level domains like \*.hel.ninja. The problem occurs locally,
+because http://localhost:3000 is communicating with https://\*.dev.hel.ninja.
 
 More info about Firefox:
 https://developer.mozilla.org/en-US/docs/Web/Privacy/Storage_Access_Policy/Errors/CookiePartitionedForeign
