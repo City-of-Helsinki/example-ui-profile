@@ -134,8 +134,7 @@ export const matchClientDataWithComponent = (
 
 export const configureClient = (
   overrides?: Partial<ClientConfig>
-): ClientConfig =>
-  setClientConfig({ ...config.tunnistamoConfig, ...overrides });
+): ClientConfig => setClientConfig({ ...config.keycloakConfig, ...overrides });
 
 export const createEventListeners = (
   addEventListener: ListenerSetter
@@ -219,7 +218,7 @@ export const mockMutatorCreator = (): MockMutator => {
     loadProfileRejectPayload;
 
   const setUserToSessionStorage = (data: AnyObject | string) => {
-    const key = getSessionStorageKey(config.tunnistamoConfig);
+    const key = getSessionStorageKey(config.keycloakConfig);
     sessionStorage.setItem(
       key,
       typeof data === 'object' ? JSON.stringify(data) : data
