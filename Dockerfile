@@ -1,5 +1,5 @@
 # ===============================================
-FROM helsinkitest/node:14-slim as appbase
+FROM registry.access.redhat.com/ubi9/nodejs-22 as appbase
 # ===============================================
 # Offical image has npm log verbosity as info. More info - https://github.com/nodejs/docker-node#verbosity
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -14,7 +14,7 @@ ENV NPM_CONFIG_PREFIX=/app/.npm-global
 ENV PATH=$PATH:/app/.npm-global/bin
 
 # Yarn
-ENV YARN_VERSION 1.19.1
+ENV YARN_VERSION 1.22.22
 RUN yarn policies set-version $YARN_VERSION
 
 # Use non-root user
