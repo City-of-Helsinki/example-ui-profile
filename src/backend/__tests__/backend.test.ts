@@ -10,7 +10,7 @@ import initMockResponses from '../../tests/backend.test.helper';
 
 describe('Backend.ts ', () => {
   let restoreEnv: AnyFunction;
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const backendUrl = 'https://localhost/';
   const responseData = { pet_name: 'petName' };
   const usersAPiToken = 'valid-api-token';

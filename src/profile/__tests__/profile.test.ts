@@ -25,7 +25,7 @@ import { GraphQLClientError } from '../../graphql/graphqlClient';
 
 describe('Profile.ts', () => {
   const config = configureClient();
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   let restoreEnv: AnyFunction;

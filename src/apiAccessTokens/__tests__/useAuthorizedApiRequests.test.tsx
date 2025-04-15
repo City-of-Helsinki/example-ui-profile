@@ -39,7 +39,7 @@ describe('useAuthorizedApiRequests hook ', () => {
   let autoFetch = false;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const config = configureClient();
   const testAudience = config.profileApiTokenAudience;
   const noDataText = 'NO_DATA';

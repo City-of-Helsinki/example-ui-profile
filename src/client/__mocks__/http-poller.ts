@@ -11,7 +11,7 @@ type GlobalWithPollerData = GlobalWithFetchMock & {
   mockHttpPoller: MockHttpPollerData;
 };
 
-const globalWithPollerData = global as GlobalWithPollerData;
+const globalWithPollerData = (global as unknown) as GlobalWithPollerData;
 
 if (!globalWithPollerData.mockHttpPoller) {
   globalWithPollerData.mockHttpPoller = {

@@ -19,7 +19,7 @@ import { AnyFunction, AnyObject } from '../../common';
 
 describe('Client factory ', () => {
   let client: ClientFactory;
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const config = configureClient();
   beforeEach(() => {
     client = createClient();

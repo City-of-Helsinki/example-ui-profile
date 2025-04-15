@@ -28,7 +28,7 @@ import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 
 describe('Profile.ts useProfileWithApiTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/', autoSignIn: true });
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const profileBackendUrl = 'https://localhost/profileGraphql/';

@@ -22,7 +22,7 @@ import {
 
 describe('useApiAccessTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/' });
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const config = configureClient();

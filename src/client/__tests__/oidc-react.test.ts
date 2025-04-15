@@ -133,7 +133,7 @@ describe('Oidc client ', () => {
     });
 
     beforeAll(async () => {
-      const fetchMock: FetchMock = global.fetch;
+      const fetchMock = (global.fetch as unknown) as FetchMock;
       fetchMock.enableMocks();
     });
     afterAll(() => {
