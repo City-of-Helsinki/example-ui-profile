@@ -5,7 +5,11 @@ FROM registry.access.redhat.com/ubi9/nodejs-22 AS appbase
 WORKDIR /app
 
 USER root
-RUN curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo
+# Download the Yarn repo securely
+RUN curl --fail --silent --show-error --location https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo \
+    && rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
+
+# Install Yarn
 RUN yum -y install yarn
 
 # Offical image has npm log verbosity as info. More info - https://github.com/nodejs/docker-node#verbosity
@@ -38,7 +42,7 @@ RUN yarn config set network-timeout 300000
 RUN yarn && yarn cache clean --force
 
 # Copy all necessary files
-COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env* /app/
+COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
 COPY /public/ /app/public
 COPY /scripts/ /app/scripts
 COPY /src/ /app/src
