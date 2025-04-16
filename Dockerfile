@@ -24,6 +24,8 @@ ENV PATH=$PATH:/app/.npm-global/bin
 ENV YARN_VERSION=1.22.22
 RUN yarn policies set-version $YARN_VERSION
 
+RUN chown -R default:root /app
+
 # Use non-root user
 USER default
 
@@ -36,7 +38,6 @@ ENV PATH=/app/node_modules/.bin:$PATH
 RUN yarn config set network-timeout 300000
 RUN yarn && yarn cache clean --force
 
-USER root
 
 # =============================
 FROM appbase AS development
