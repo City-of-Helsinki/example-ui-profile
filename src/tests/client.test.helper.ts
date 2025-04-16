@@ -32,7 +32,7 @@ export const mockApiTokenResponse = (
     returnError,
     additionalTokenAudience
   } = options;
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const tokenKey =
     audience ||
     window._env_.REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE ||

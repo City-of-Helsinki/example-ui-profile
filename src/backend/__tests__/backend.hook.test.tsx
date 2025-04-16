@@ -23,7 +23,7 @@ jest.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   configureClient();
   const backendUrl = 'https://localhost/';
   const validResponseData = {

@@ -13,7 +13,7 @@ export const mockProfileResponse = (options: {
   delay?: number;
   requestCallback?: AnyFunction;
 }): void => {
-  const fetchMock: FetchMock = global.fetch;
+  const fetchMock = (global.fetch as unknown) as FetchMock;
   const { response, delay, requestCallback, profileBackendUrl } = options;
   fetchMock.doMockOnceIf(profileBackendUrl, req => {
     if (requestCallback) {

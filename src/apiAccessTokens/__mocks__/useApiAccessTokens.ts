@@ -12,7 +12,7 @@ type GlobalWithPollerData = GlobalWithFetchMock & {
   mockApiAccessTokensHookData: MockApiAccessTokensHookData;
 };
 
-const globalWithApiAccessTokensHook = global as GlobalWithPollerData;
+const globalWithApiAccessTokensHook = (global as unknown) as GlobalWithPollerData;
 
 if (!globalWithApiAccessTokensHook.mockApiAccessTokensHookData) {
   globalWithApiAccessTokensHook.mockApiAccessTokensHookData = {
