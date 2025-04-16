@@ -30,13 +30,19 @@ RUN chown -R default:root /app
 USER default
 
 # Copy package.json and package-lock.json/yarn.lock files
-COPY --chown=default:root package*.json *yarn* ./
+COPY --chown=default:root package.json yarn.lock /app/
 
 # Install npm depepndencies
 ENV PATH=/app/node_modules/.bin:$PATH
 
 RUN yarn config set network-timeout 300000
 RUN yarn && yarn cache clean --force
+
+# Copy all necessary files
+COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env* /app/
+COPY /public/ /app/public
+COPY /scripts/ /app/scripts
+COPY /src/ /app/src
 
 
 # =============================
@@ -48,9 +54,6 @@ WORKDIR /app
 # Set NODE_ENV to development in the development container
 ARG NODE_ENV=development
 ENV NODE_ENV=$NODE_ENV
-
-# copy in our source code last, as it changes the most
-COPY --chown=default:root . .
 
 # Bake package.json start command into the image
 CMD ["yarn", "start"]
