@@ -24,13 +24,12 @@ ENV PATH=$PATH:/app/.npm-global/bin
 ENV YARN_VERSION=1.22.22
 RUN yarn policies set-version $YARN_VERSION
 
+# Copy package.json and package-lock.json/yarn.lock files
+COPY package.json yarn.lock /app/
 RUN chown -R default:root /app
 
 # Use non-root user
 USER default
-
-# Copy package.json and package-lock.json/yarn.lock files
-COPY --chown=default:root package.json yarn.lock /app/
 
 # Install npm depepndencies
 ENV PATH=/app/node_modules/.bin:$PATH
