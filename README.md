@@ -120,12 +120,13 @@ Scripts generates first environment variables to `public/test-env-config.js` wit
 actual used variables when running the app. App is not using CRA's default `process.env` way to refer of variables but
 `window._env_` object.
 
-### yarn test-coverage
+### yarn test:coverage
 
 Runs tests with coverage outputted to console. Results are saved to /coverage Note: command is run with "CI=true". Remove this to get visually clearer results (with colors!).
 
-### yarn test-coverage-for-sonar
+### yarn test:coverage-for-sonar
 
+(Legacy)
 Runs tests with coverage and its results are saved as an xml file by jest-sonar-reporter.
 This file can be sent to Sonar with Sonar Scanner (CLI). Report is /reports
 
