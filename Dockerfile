@@ -5,12 +5,13 @@ FROM registry.access.redhat.com/ubi9/nodejs-22 AS appbase
 WORKDIR /app
 
 USER root
-# Download the Yarn repo securely
-RUN curl --fail --proto "=https" --silent --show-error --location https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo \
-    && rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
 
-# Install Yarn
-RUN yum -y install yarn
+# Install Yarn v4 from Yarn repository
+ENV YARN_VERSION=4.12.0
+RUN curl --fail --proto "=https" --silent --show-error --location \
+    "https://repo.yarnpkg.com/${YARN_VERSION}/packages/yarnpkg-cli/bin/yarn.js" \
+    -o /usr/local/bin/yarn && \
+    chmod +x /usr/local/bin/yarn
 
 # Offical image has npm log verbosity as info. More info - https://github.com/nodejs/docker-node#verbosity
 ENV NPM_CONFIG_LOGLEVEL=warn
@@ -24,12 +25,12 @@ ENV NODE_ENV=$NODE_ENV
 ENV NPM_CONFIG_PREFIX=/app/.npm-global
 ENV PATH=$PATH:/app/.npm-global/bin
 
-# Yarn
-ENV YARN_VERSION=1.22.22
-RUN yarn policies set-version $YARN_VERSION
-
-# Copy package.json and package-lock.json/yarn.lock files
+# Copy package.json and yarn.lock files
 COPY package.json yarn.lock /app/
+
+# Copy Yarn v4 configuration
+COPY .yarnrc.yml /app/
+
 RUN chown -R default:root /app
 
 # Use non-root user
@@ -38,8 +39,7 @@ USER default
 # Install npm depepndencies
 ENV PATH=/app/node_modules/.bin:$PATH
 
-RUN yarn config set network-timeout 300000
-RUN yarn && yarn cache clean --force
+RUN yarn --immutable && yarn cache clean --all
 
 # Copy all necessary files
 COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
