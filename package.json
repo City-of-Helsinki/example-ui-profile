@@ -55,7 +55,7 @@
     "start": "pnpm run update-runtime-env && react-scripts start",
     "build": "react-scripts build",
     "test": "cross-env TEST=true pnpm run update-runtime-env && react-scripts test",
-    "test:coverage": "CI=true pnpm test --coverage",
+    "test:coverage": "cross-env CI=true TEST=true pnpm run update-runtime-env && react-scripts test --coverage",
     "test:coverage-for-sonar": "pnpm test:coverage --testResultsProcessor jest-sonar-reporter",
     "ci": "cross-env CI=true pnpm test --coverage",
     "lint": "eslint --ext js,ts,tsx src",
