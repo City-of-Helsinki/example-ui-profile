@@ -17,18 +17,19 @@
     "@types/react": "17.0.2",
     "@types/react-dom": "17.0.2",
     "@types/react-redux": "^7.1.5",
+    "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.1.0",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.7",
     "await-to-js": "^3.0.0",
     "enzyme": "^3.11.0",
     "eslint": "^8.14.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-jest": "^26.5.3",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-sonarjs": "^0.13.0",
-    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-react-hooks": "^4.5.0",
+    "eslint-plugin-sonarjs": "^0.13.0",
     "graphql": "^15.4.0",
     "graphql.macro": "^1.4.2",
     "hds-core": "1.5.1",
@@ -51,12 +52,12 @@
     "typescript": "^4.7.0"
   },
   "scripts": {
-    "start": "yarn run update-runtime-env && react-scripts start",
+    "start": "pnpm run update-runtime-env && react-scripts start",
     "build": "react-scripts build",
-    "test": "cross-env TEST=true yarn run update-runtime-env && react-scripts test",
-    "test:coverage": "CI=true yarn test --coverage",
-    "test:coverage-for-sonar": "yarn test-coverage --testResultsProcessor jest-sonar-reporter",
-    "ci": "cross-env CI=true yarn test --coverage",
+    "test": "cross-env TEST=true pnpm run update-runtime-env && react-scripts test",
+    "test:coverage": "CI=true pnpm test --coverage",
+    "test:coverage-for-sonar": "pnpm test:coverage --testResultsProcessor jest-sonar-reporter",
+    "ci": "cross-env CI=true pnpm test --coverage",
     "lint": "eslint --ext js,ts,tsx src",
     "update-runtime-env": "ts-node -P ./scripts/tsconfig.json --files scripts/update-runtime-env.ts"
   },
@@ -78,13 +79,17 @@
   "devDependencies": {
     "@testing-library/react": "^12.1.5",
     "cross-env": "^7.0.3",
+    "identity-obj-proxy": "^3.0.0",
     "jest-sonar-reporter": "^2.0.0",
     "ts-node": "^8.8.2"
   },
   "jest": {
     "transformIgnorePatterns": [
       "<rootDir>/node_modules/(?!hds-react)/"
-    ]
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
+    }
   },
   "jestSonar": {
     "reportPath": "reports",

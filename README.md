@@ -37,7 +37,7 @@ running the app. App is not using CRA's default `process.env` way to refer of
 variables but `window._env_` object.
 
 Note that running built application locally you need to generate also `public/env-config.js` file. It can be done with
-`yarn update-runtime-env`. By default it's generated for development environment if no `NODE_ENV` is set.
+`pnpm update-runtime-env`. By default it's generated for development environment if no `NODE_ENV` is set.
 
 ### Config for Helsinki-tunnistus
 
@@ -112,7 +112,7 @@ services:
 
 ## Testing
 
-### yarn test
+### pnpm test
 
 Runs tests in watch mode.
 
@@ -120,17 +120,17 @@ Scripts generates first environment variables to `public/test-env-config.js` wit
 actual used variables when running the app. App is not using CRA's default `process.env` way to refer of variables but
 `window._env_` object.
 
-### yarn test:coverage
+### pnpm test:coverage
 
 Runs tests with coverage outputted to console. Results are saved to /coverage Note: command is run with "CI=true". Remove this to get visually clearer results (with colors!).
 
-### yarn test:coverage-for-sonar
+### pnpm test:coverage-for-sonar
 
 (Legacy)
 Runs tests with coverage and its results are saved as an xml file by jest-sonar-reporter.
 This file can be sent to Sonar with Sonar Scanner (CLI). Report is /reports
 
-### yarn update-runtime-env
+### pnpm update-runtime-env
 
 Generates variable object used when app is running. Generated object is stored at `public/env-config.js` and available
 as `window._env_` object.
