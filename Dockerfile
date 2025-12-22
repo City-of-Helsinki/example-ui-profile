@@ -25,15 +25,14 @@ ENV PATH=$PATH:/app/.npm-global/bin
 COPY package.json pnpm-lock.yaml /app/
 RUN chown -R default:root /app
 
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-
-RUN chown -R default:root /app
-
 # Use non-root user
 USER default
 
 # Install npm depepndencies
 ENV PATH=/app/node_modules/.bin:$PATH
+
+RUN pnpm config set network-timeout 300000
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Copy all necessary files
 COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
