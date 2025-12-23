@@ -5,12 +5,9 @@ FROM registry.access.redhat.com/ubi9/nodejs-22 AS appbase
 WORKDIR /app
 
 USER root
-# Download the Yarn repo securely
-RUN curl --fail --proto "=https" --silent --show-error --location https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo \
-    && rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
 
-# Install Yarn
-RUN yum -y install yarn
+# Install pnpm
+RUN npm install -g pnpm@^10
 
 # Offical image has npm log verbosity as info. More info - https://github.com/nodejs/docker-node#verbosity
 ENV NPM_CONFIG_LOGLEVEL=warn
@@ -24,12 +21,8 @@ ENV NODE_ENV=$NODE_ENV
 ENV NPM_CONFIG_PREFIX=/app/.npm-global
 ENV PATH=$PATH:/app/.npm-global/bin
 
-# Yarn
-ENV YARN_VERSION=1.22.22
-RUN yarn policies set-version $YARN_VERSION
-
-# Copy package.json and package-lock.json/yarn.lock files
-COPY package.json yarn.lock /app/
+# Copy package.json and pnpm-lock.yaml files
+COPY package.json pnpm-lock.yaml /app/
 RUN chown -R default:root /app
 
 # Use non-root user
@@ -38,8 +31,8 @@ USER default
 # Install npm depepndencies
 ENV PATH=/app/node_modules/.bin:$PATH
 
-RUN yarn config set network-timeout 300000
-RUN yarn && yarn cache clean --force
+RUN pnpm config set network-timeout 300000
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # Copy all necessary files
 COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
@@ -59,14 +52,14 @@ ARG NODE_ENV=development
 ENV NODE_ENV=$NODE_ENV
 
 # Bake package.json start command into the image
-CMD ["yarn", "start"]
+CMD ["pnpm", "start"]
 
 # ===================================
 FROM appbase AS staticbuilder
 # ===================================
 
 COPY . /app
-RUN yarn build
+RUN pnpm build
 
 # =============================
 FROM registry.access.redhat.com/ubi9/nginx-122 AS production
