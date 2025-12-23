@@ -7,7 +7,7 @@ WORKDIR /app
 USER root
 
 # Install pnpm
-RUN npm install -g pnpm@9.15.0
+RUN npm install -g pnpm@^10
 
 # Offical image has npm log verbosity as info. More info - https://github.com/nodejs/docker-node#verbosity
 ENV NPM_CONFIG_LOGLEVEL=warn
