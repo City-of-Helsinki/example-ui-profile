@@ -39,7 +39,7 @@ USER default
 ENV PATH=/app/node_modules/.bin:$PATH
 
 RUN yarn config set network-timeout 300000
-RUN yarn && yarn cache clean --force
+RUN yarn install --frozen-lockfile --ignore-scripts && yarn cache clean --force
 
 # Copy all necessary files
 COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
