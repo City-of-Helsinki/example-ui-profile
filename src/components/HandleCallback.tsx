@@ -8,7 +8,6 @@ import { getClient } from '../client/oidc-react';
 const HandleCallback = (
   props: React.PropsWithChildren<unknown>
 ): React.ReactElement => {
-  console.log('ayy lammo', config.keycloakConfig);
   const location = useLocation();
   const client = getClient();
   const { children } = props;
