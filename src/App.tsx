@@ -20,6 +20,7 @@ setClientConfig(config.keycloakConfig);
 
 function App(): React.ReactElement {
   const keycloakPath = config.keycloakConfig.path;
+
   return (
     <HandleCallback>
       <ClientProvider>
