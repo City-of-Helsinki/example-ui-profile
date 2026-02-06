@@ -24,6 +24,7 @@ const TokenForm = ({
   useEffect(() => {
     if (isComplete && !completionReportedRef.current) {
       onCompletion(audience);
+
       completionReportedRef.current = true;
     }
   }, [isComplete, audience, onCompletion]);
@@ -86,6 +87,8 @@ const UnauthenticatedContent = (): React.ReactElement => (
 );
 const AuthenticatedContent = (): React.ReactElement => {
   const config = getClientConfig();
+  console.log('TEST');
+
   return (
     <PageContent>
       <h1>API Access tokeneiden haku</h1>

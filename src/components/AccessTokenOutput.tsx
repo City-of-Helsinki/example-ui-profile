@@ -7,6 +7,7 @@ const AccessTokenOutput = (props: {
   audience: string;
 }): React.ReactElement | null => {
   const { accessToken, audience } = props;
+
   if (!accessToken) {
     return null;
   }

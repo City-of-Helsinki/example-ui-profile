@@ -7,6 +7,9 @@ const LogoutInfo = (): React.ReactElement => {
   const { logout, getUser } = useClient();
   const user = getUser();
   const name = user ? `${user.given_name} ${user.family_name}` : '';
+
+  console.log('LOGOUT');
+
   return (
     <div className={styles['content-element']} data-test-id="logout-info">
       <h3>

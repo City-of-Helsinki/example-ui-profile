@@ -26,6 +26,7 @@ const Header = (): React.ReactElement => {
   const path = location.pathname.replace(pathPrefix, '');
   const currentPageFromPath: Page =
     path && path.length > 1 ? (path.substr(1) as Page) : 'frontpage';
+
   const [active, setActive] = useState<Page>(currentPageFromPath);
 
   const title = 'Helsinki Profiili Example';
