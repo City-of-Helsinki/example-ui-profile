@@ -182,7 +182,7 @@ jobs:
       run: |
         mkdir -p sonar-config
         curl -o sonar-config/sonar-project.properties \
-          https://raw.githubusercontent.com/City-of-Helsinki/.github/main/sonar-configs/frontend/sonar-project.properties
+          https://raw.githubusercontent.com/City-of-Helsinki/example-ui-profile/refs/heads/feat/KEH-189-global-sonar-properties/.github/sonar-configs/sonar-project.properties
 
     - name: SonarQube Cloud Scan
       if: ${{ !inputs.skip_sonar }}
