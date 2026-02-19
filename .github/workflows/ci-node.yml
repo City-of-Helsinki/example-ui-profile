@@ -190,9 +190,7 @@ jobs:
       with:
         projectBaseDir: ${{ inputs.app-directory == '.' && inputs.working-directory || inputs.app-directory }}
         args: >
-          -Dproject.settings=${{ inputs.use_sonar_default_config && 'sonar-config/sonar-project.properties' || 'sonar-project.properties' }}
+          -Dproject.settings=${{ inputs.use_sonar_default_config && 'sonar-config/sonar-project.properties' || 'sonar-project.properties' }} -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-        
