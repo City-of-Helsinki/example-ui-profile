@@ -29,7 +29,7 @@ type TestResponseData = {
 };
 type Request = AuthorizedRequest<TestResponseData, TestProps>;
 
-jest.mock('../../apiAccessTokens/useApiAccessTokens');
+vi.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('useAuthorizedApiRequests hook ', () => {
   let authorizedApiActions: AuthorizedApiActions<TestResponseData, TestProps>;
@@ -44,7 +44,7 @@ describe('useAuthorizedApiRequests hook ', () => {
   const requestUrl = 'http://localhost/';
   const responseData: TestResponseData = { something: true };
   const autoFetchProp: { data: TestProps } = { data: { autoFetchProp: true } };
-  const requestTracker = jest.fn();
+  const requestTracker = vi.fn();
   const setRequestMockResponse = initMockResponses(
     fetchMock,
     requestUrl,
@@ -180,7 +180,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       const authHeader = getFetchMockLastCallAuthenticationHeader(fetchMock);
       expect(authHeader).toBe(`Bearer ${validTokens[testAudience]}`);
       expect(requestTracker).toHaveBeenCalledTimes(1);
-      expect(requestTracker).lastCalledWith({
+      expect(requestTracker).toHaveBeenLastCalledWith({
         token: validTokens[testAudience],
         ...autoFetchProp
       });
@@ -218,7 +218,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       await waitFor(() => expect(getRequestStatusFromDom()).toBe('loaded'));
       expect(getDataFromDom()).toEqual(responseData);
       expect(requestTracker).toHaveBeenCalledTimes(1);
-      expect(requestTracker).lastCalledWith({
+      expect(requestTracker).toHaveBeenLastCalledWith({
         token: validTokens[testAudience],
         ...firstCallProps
       });
@@ -229,7 +229,7 @@ describe('useAuthorizedApiRequests hook ', () => {
         expect(authorizedApiActions.getRequestStatus()).toBe('loaded')
       );
       expect(requestTracker).toHaveBeenCalledTimes(2);
-      expect(requestTracker).lastCalledWith({
+      expect(requestTracker).toHaveBeenLastCalledWith({
         token: validTokens[testAudience]
       });
     });

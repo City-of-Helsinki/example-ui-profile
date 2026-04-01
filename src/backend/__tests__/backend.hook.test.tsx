@@ -17,7 +17,7 @@ import initMockResponses, {
 } from '../../tests/backend.test.helper';
 import { configureClient } from '../../client/__mocks__';
 
-jest.mock('../../apiAccessTokens/useApiAccessTokens');
+vi.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();

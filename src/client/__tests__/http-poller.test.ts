@@ -10,16 +10,16 @@ type TestProps = {
   maxPollCount: number;
 };
 
-jest.unmock('../http-poller');
+vi.unmock('../http-poller');
 
 const originalSetTimeout = global.setTimeout;
 const setImmediate = (f: (value?: unknown) => void) => originalSetTimeout(f, 0);
 
 describe(`http-poller`, () => {
-  const pollFunctionMockCallback = jest.fn();
-  const onErrorMockCallback = jest.fn();
-  const shouldPollMockCallback = jest.fn();
-  const loadCallTracker = jest.fn();
+  const pollFunctionMockCallback = vi.fn();
+  const onErrorMockCallback = vi.fn();
+  const shouldPollMockCallback = vi.fn();
+  const loadCallTracker = vi.fn();
   const intervalInMs = 200;
   let poller: HttpPoller;
   const pollerDefaultTestProps: TestProps = {
@@ -60,7 +60,7 @@ describe(`http-poller`, () => {
     });
   }
   const advanceOneInterval = async () => {
-    jest.advanceTimersByTime(intervalInMs + 1);
+    vi.advanceTimersByTime(intervalInMs + 1);
   };
   const advanceToTimerEnd = async () => {
     await advanceOneInterval();
@@ -81,11 +81,11 @@ describe(`http-poller`, () => {
   };
   afterEach(() => {
     poller.stop();
-    jest.resetAllMocks();
-    jest.useRealTimers();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
   describe('Calling start() starts the timer and when timer ends ', () => {
     it('the pollFunction and shouldPoll have been called continuously', async () => {
@@ -93,9 +93,9 @@ describe(`http-poller`, () => {
         ...pollerDefaultTestProps
       });
       poller.start();
-      expect(shouldPollMockCallback).not.toBeCalled();
-      expect(pollFunctionMockCallback).not.toBeCalled();
-      expect(onErrorMockCallback).not.toBeCalled();
+      expect(shouldPollMockCallback).not.toHaveBeenCalled();
+      expect(pollFunctionMockCallback).not.toHaveBeenCalled();
+      expect(onErrorMockCallback).not.toHaveBeenCalled();
       await advanceToTimerEnd();
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(1);
       expect(pollFunctionMockCallback).toHaveBeenCalledTimes(1);
@@ -127,7 +127,9 @@ describe(`http-poller`, () => {
       await advanceFromStartTimerToLoadEnd();
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(1);
       expect(onErrorMockCallback).toHaveBeenCalledTimes(1);
-      expect(onErrorMockCallback).toBeCalledWith(HttpStatusCode.FORBIDDEN);
+      expect(onErrorMockCallback).toHaveBeenCalledWith(
+        HttpStatusCode.FORBIDDEN
+      );
       await advanceToTimerEnd();
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(2);
     });
@@ -140,7 +142,7 @@ describe(`http-poller`, () => {
       poller.start();
       await advanceFromStartTimerToLoadEnd();
       expect(onErrorMockCallback).toHaveBeenCalledTimes(1);
-      expect(onErrorMockCallback).toBeCalledWith(undefined);
+      expect(onErrorMockCallback).toHaveBeenCalledWith(undefined);
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(1);
       expect(pollFunctionMockCallback).toHaveBeenCalledTimes(1);
       await advanceToTimerEnd();

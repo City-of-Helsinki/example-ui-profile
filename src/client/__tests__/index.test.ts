@@ -96,7 +96,7 @@ describe('Client factory ', () => {
     };
 
     function addListenerMock(eventType: ClientEventId): MockFunctions {
-      const listenerMock = jest.fn();
+      const listenerMock = vi.fn();
       const listenerFunc = (payload?: EventPayload): void => {
         listenerMock(payload);
       };

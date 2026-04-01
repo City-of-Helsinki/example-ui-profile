@@ -68,7 +68,7 @@ export type ClientValues = {
   email: string | undefined;
 };
 
-export type EventListeners = Record<ClientEventId, jest.Mock> & {
+export type EventListeners = Record<ClientEventId, vi.Mock> & {
   dispose: () => void;
   getLastCallPayload: (eventType: ClientEventId) => Payload;
   getCallCount: (eventType: ClientEventId) => number;
@@ -141,7 +141,7 @@ export const createEventListeners = (
   const listeners: Partial<EventListeners> = {};
   const disposers: AnyFunction[] = [];
   Object.keys(ClientEvent).forEach((eventType: string): void => {
-    const listener = jest.fn();
+    const listener = vi.fn();
     listeners[eventType as ClientEventId] = listener;
     disposers.push(addEventListener(eventType, listener));
   });
@@ -182,8 +182,8 @@ export const mockMutatorCreator = (): MockMutator => {
   let tokenParsed: AnyObject = {};
   let initCallCount = 0;
   let creationCount = 0;
-  let loginMock: jest.Mock;
-  let logoutMock: jest.Mock;
+  let loginMock: vi.Mock;
+  let logoutMock: vi.Mock;
   const tokens = {
     token: undefined,
     idToken: undefined,
@@ -290,8 +290,8 @@ export const mockMutatorCreator = (): MockMutator => {
     clientInitRejectPayload = undefined;
     loadProfileResolvePayload = { given_name: 'given_name' };
     loadProfileRejectPayload = undefined;
-    loginMock = jest.fn();
-    logoutMock = jest.fn();
+    loginMock = vi.fn();
+    logoutMock = vi.fn();
     user = {};
     Object.keys(tokenParsed).forEach((key: string) => {
       tokenParsed[key] = undefined;

@@ -8,26 +8,33 @@ import {
 import { AnyFunction } from './common';
 
 const customGlobal: GlobalWithFetchMock = global as GlobalWithFetchMock;
+// jest-fetch-mock internally calls jest.fn(), alias vi as jest so it works with Vitest
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).jest = vi;
 // eslint-disable-next-line import/no-extraneous-dependencies
 customGlobal.fetch = require('jest-fetch-mock');
 
 customGlobal.fetchMock = customGlobal.fetch;
 
-jest.mock('react-router', () => ({
+vi.mock('react-router', async () => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore: expected ts type error
-  ...jest.requireActual('react-router'),
+  ...(await vi.importActual('react-router')),
   useHistory: (): Record<string, AnyFunction> => ({
-    push: jest.fn()
+    push: vi.fn()
   })
 }));
 
-jest.mock('./config', () => {
-  jest.requireActual('../public/test-env-config');
-  return jest.requireActual('./config');
+vi.mock('./config', async () => {
+  await vi.importActual('../public/test-env-config');
+  return vi.importActual('./config');
 });
 
-jest.mock('oidc-client', () => {
+vi.mock('oidc-client', async () => {
+  // oidc-client is CJS; vi.importActual wraps it as { default: module.exports }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actual = (await vi.importActual('oidc-client')) as any;
+  const actualExports = actual.default || actual;
   class MockUserManagerClass {
     constructor(settings: UserManagerSettings) {
       const mockMutator = mockMutatorGetterOidc();
@@ -37,11 +44,10 @@ jest.mock('oidc-client', () => {
     }
   }
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: expected ts type error
-    ...jest.requireActual('oidc-client'),
+    ...actualExports,
+    default: { ...actualExports, UserManager: MockUserManagerClass },
     UserManager: MockUserManagerClass
   };
 });
 
-jest.mock('./client/http-poller');
+vi.mock('./client/http-poller');

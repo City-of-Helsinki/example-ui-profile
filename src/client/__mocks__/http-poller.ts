@@ -2,8 +2,8 @@ import { GlobalWithFetchMock } from 'jest-fetch-mock';
 import { HttpPoller, HttpPollerProps } from '../http-poller';
 
 type MockHttpPollerData = {
-  start: jest.Mock;
-  stop: jest.Mock;
+  start: vi.Mock;
+  stop: vi.Mock;
   props?: HttpPollerProps;
 };
 
@@ -15,8 +15,8 @@ const globalWithPollerData = (global as unknown) as GlobalWithPollerData;
 
 if (!globalWithPollerData.mockHttpPoller) {
   globalWithPollerData.mockHttpPoller = {
-    start: jest.fn(),
-    stop: jest.fn(),
+    start: vi.fn(),
+    stop: vi.fn(),
     props: undefined
   };
 }
