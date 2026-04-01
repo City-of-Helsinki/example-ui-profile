@@ -1,8 +1,7 @@
 import to from 'await-to-js';
 import { GraphQLError } from 'graphql';
-import { loader } from 'graphql.macro';
 import { useCallback } from 'react';
-import { ApolloError } from '@apollo/client';
+import { ApolloError, gql } from '@apollo/client';
 import {
   GraphQLClient,
   createGraphQLClient,
@@ -16,6 +15,97 @@ import useAuthorizedApiRequests, {
   AuthorizedApiActions
 } from '../apiAccessTokens/useAuthorizedApiRequests';
 import { getClientConfig } from '../client';
+
+const MY_PROFILE_QUERY = gql`
+  query MyProfileQuery {
+    myProfile {
+      id
+      firstName
+      lastName
+      nickname
+      language
+      primaryAddress {
+        id
+        primary
+        address
+        postalCode
+        city
+        countryCode
+        addressType
+      }
+      addresses {
+        edges {
+          node {
+            primary
+            id
+            address
+            postalCode
+            city
+            countryCode
+            addressType
+          }
+        }
+      }
+      primaryEmail {
+        id
+        email
+        primary
+        emailType
+        verified
+      }
+      emails {
+        edges {
+          node {
+            primary
+            id
+            email
+            emailType
+            verified
+          }
+        }
+      }
+      primaryPhone {
+        id
+        phone
+        primary
+        phoneType
+      }
+      phones {
+        edges {
+          node {
+            primary
+            id
+            phone
+            phoneType
+          }
+        }
+      }
+      verifiedPersonalInformation {
+        firstName
+        lastName
+        givenName
+        nationalIdentificationNumber
+        municipalityOfResidence
+        municipalityOfResidenceNumber
+        permanentAddress {
+          streetAddress
+          postalCode
+          postOffice
+        }
+        temporaryAddress {
+          streetAddress
+          postalCode
+          postOffice
+        }
+        permanentForeignAddress {
+          streetAddress
+          additionalAddress
+          countryCode
+        }
+      }
+    }
+  }
+`;
 
 let profileGqlClient: GraphQLClient;
 
@@ -81,7 +171,6 @@ export async function getProfileData(
       )
     };
   }
-  const MY_PROFILE_QUERY = loader('../graphql/MyProfileQuery.graphql');
   const [error, result]: [
     Error | ApolloError | null,
     ProfileQueryResult | undefined
