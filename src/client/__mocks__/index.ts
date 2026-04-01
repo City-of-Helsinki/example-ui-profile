@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { UserManager } from 'oidc-client';
+import { UserManager } from 'oidc-client-ts';
 import {
   Client,
   ClientEvent,

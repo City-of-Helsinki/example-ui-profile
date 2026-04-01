@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import Oidc, {
+import {
+  Log,
   UserManager,
   UserManagerSettings,
   WebStorageStateStore,
   User
-} from 'oidc-client';
+} from 'oidc-client-ts';
 import HttpStatusCode from 'http-status-typed';
 
 import {
@@ -104,8 +105,8 @@ export function createOidcClient(): Client {
     setError
   } = clientFunctions;
   if (clientConfig.enableLogging) {
-    Oidc.Log.logger = console;
-    Oidc.Log.level = Oidc.Log.DEBUG;
+    Log.setLogger(console);
+    Log.setLevel(Log.DEBUG);
   }
 
   const getSessionStorageData = (): AnyObject | undefined => {

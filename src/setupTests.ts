@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { GlobalWithFetchMock } from 'jest-fetch-mock';
-import { UserManager, UserManagerSettings } from 'oidc-client';
+import { UserManager, UserManagerSettings } from 'oidc-client-ts';
 import {
   mockMutatorGetterOidc,
   mockOidcUserManager
@@ -30,11 +30,9 @@ vi.mock('./config', async () => {
   return vi.importActual('./config');
 });
 
-vi.mock('oidc-client', async () => {
-  // oidc-client is CJS; vi.importActual wraps it as { default: module.exports }
+vi.mock('oidc-client-ts', async () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const actual = (await vi.importActual('oidc-client')) as any;
-  const actualExports = actual.default || actual;
+  const actual = (await vi.importActual('oidc-client-ts')) as any;
   class MockUserManagerClass {
     constructor(settings: UserManagerSettings) {
       const mockMutator = mockMutatorGetterOidc();
@@ -44,8 +42,7 @@ vi.mock('oidc-client', async () => {
     }
   }
   return {
-    ...actualExports,
-    default: { ...actualExports, UserManager: MockUserManagerClass },
+    ...actual,
     UserManager: MockUserManagerClass
   };
 });

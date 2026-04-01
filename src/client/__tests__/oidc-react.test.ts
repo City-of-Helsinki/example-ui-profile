@@ -1,5 +1,5 @@
 import to from 'await-to-js';
-import { UserManager } from 'oidc-client';
+import { UserManager } from 'oidc-client-ts';
 import { waitFor } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 
