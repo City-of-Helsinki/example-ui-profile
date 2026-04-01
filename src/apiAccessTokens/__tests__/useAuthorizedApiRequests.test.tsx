@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 import { FetchStatus } from '../useApiAccessTokens';
 import useAuthorizedApiRequests, {
@@ -35,7 +33,7 @@ jest.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('useAuthorizedApiRequests hook ', () => {
   let authorizedApiActions: AuthorizedApiActions<TestResponseData, TestProps>;
-  let dom: ReactWrapper;
+  let unmount: () => void;
   let autoFetch = false;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
@@ -109,14 +107,11 @@ describe('useAuthorizedApiRequests hook ', () => {
       }
     );
 
-    dom = mount(<TestWrapper />);
+    ({ unmount } = render(<TestWrapper />));
   };
 
   const getDomText = (id: string): FetchStatus | undefined => {
-    const text = dom
-      .find(`#${id}`)
-      .at(0)
-      .text();
+    const text = document.getElementById(id)?.textContent;
     return text ? (text as FetchStatus) : undefined;
   };
 
@@ -164,8 +159,8 @@ describe('useAuthorizedApiRequests hook ', () => {
     resetMockApiAccessTokensHookData();
   });
   beforeEach(() => {
-    if (dom) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
   });
 

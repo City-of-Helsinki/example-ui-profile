@@ -1,6 +1,5 @@
 import React from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
+import { render, act } from '@testing-library/react';
 import { useSelector } from 'react-redux';
 import { getClient } from '../oidc-react';
 import { useClient, useClientErrorDetection } from '../hooks';
@@ -85,7 +84,6 @@ const ErrorHookRenderer = (): React.ReactElement => {
 };
 
 describe('Client consumers ', () => {
-  let dom: ReactWrapper;
   configureClient({ autoSignIn: true });
   const nonHookClient = getClient();
   const mockMutator = mockMutatorGetterOidc();
@@ -94,23 +92,18 @@ describe('Client consumers ', () => {
   const instance3Selector = '#instance_3';
 
   const getComponentValues = (selector: string): ClientValues | undefined =>
-    getClientDataFromComponent(dom, selector);
+    getClientDataFromComponent(selector);
 
   const matchComponentWithClient = (
     selector: string,
     client: Client
-  ): ClientValues | undefined =>
-    matchClientDataWithComponent(dom, selector, client);
+  ): ClientValues | undefined => matchClientDataWithComponent(selector, client);
 
   const getErrorText = (): string =>
-    dom
-      .find('#errorRenderer')
-      .at(0)
-      .find('.error')
-      .text();
+    document.querySelector('#errorRenderer .error')?.textContent || '';
 
   const compareComponentWithRedux = (): void => {
-    const values = getComponentValues('#redux');
+    const values = getComponentValues('#instance_redux');
     const user = nonHookClient.getUser();
     const clientEmail = user ? user.email : undefined;
     const errorObj = nonHookClient.getError();
@@ -134,7 +127,7 @@ describe('Client consumers ', () => {
   };
 
   const mountDom = (): void => {
-    dom = mount(
+    render(
       <ClientProvider>
         <StoreProvider>
           <div>
@@ -150,7 +143,6 @@ describe('Client consumers ', () => {
     );
   };
   beforeAll(async () => {
-    mountDom();
     await act(async () => {
       await nonHookClient.init();
     });
@@ -162,14 +154,13 @@ describe('Client consumers ', () => {
       mockMutator.setUser();
       nonHookClient.onAuthChange(false);
     });
-    dom.update();
+    mountDom();
   });
   afterEach(() => {
     nonHookClient.clearSession();
   });
   describe('have same instance ', () => {
     it('with same values', async () => {
-      dom.update();
       expect(instances.size).toBe(instanceCount);
       expect((instances.get('1') as Client).getStatus()).toBe(
         ClientStatus.UNAUTHORIZED
@@ -185,16 +176,15 @@ describe('Client consumers ', () => {
       matchComponentWithClient(instance1Selector, instances.get('3') as Client);
       matchComponentWithClient(instance2Selector, instances.get('1') as Client);
       matchComponentWithClient(instance3Selector, instances.get('2') as Client);
-      matchComponentWithClient('#consumer', nonHookClient);
+      matchComponentWithClient('#instance_consumer', nonHookClient);
       const user = mockMutator.createValidUserData({
         email: 'yougot@email.com'
       });
-      act(() => {
+      await act(async () => {
         mockMutator.setUser(user);
         nonHookClient.onAuthChange(true);
       });
 
-      dom.update();
       const values = getComponentValues(instance1Selector) as ClientValues;
       expect(values && values.email).toBe(user.email);
       expect((instances.get('3') as Client).getStatus()).toBe(
@@ -203,24 +193,23 @@ describe('Client consumers ', () => {
       matchComponentWithClient(instance1Selector, instances.get('3') as Client);
       matchComponentWithClient(instance2Selector, instances.get('1') as Client);
       matchComponentWithClient(instance3Selector, instances.get('2') as Client);
-      matchComponentWithClient('#consumer', nonHookClient);
+      matchComponentWithClient('#instance_consumer', nonHookClient);
     });
 
     it('Error hook is triggered and component rendered', async () => {
       expect(getErrorText()).toBe('');
-      act(() => {
+      await act(async () => {
         nonHookClient.setError({
           type: ClientError.UNEXPECTED_AUTH_CHANGE,
           message: ClientError.UNEXPECTED_AUTH_CHANGE
         });
       });
-      dom.update();
       expect(getErrorText()).toBe(ClientError.UNEXPECTED_AUTH_CHANGE);
     });
     it('Redux consumer render client data and updates', async () => {
       const email = 'redux@react.js';
       compareComponentWithRedux();
-      act(() => {
+      await act(async () => {
         nonHookClient.setError({
           type: ClientError.UNEXPECTED_AUTH_CHANGE,
           message: ClientError.UNEXPECTED_AUTH_CHANGE
@@ -228,9 +217,8 @@ describe('Client consumers ', () => {
         mockMutator.setUser(mockMutator.createValidUserData({ email }));
         nonHookClient.onAuthChange(true);
       });
-      dom.update();
       compareComponentWithRedux();
-      const values = getComponentValues('#redux');
+      const values = getComponentValues('#instance_redux');
       expect(values).toBeDefined();
       if (values) {
         expect(values.email).toBe(email);

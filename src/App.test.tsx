@@ -1,11 +1,11 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 
 import App from './App';
 
 it('renders without crashing', () => {
-  shallow(
+  render(
     <MemoryRouter>
       <App />
     </MemoryRouter>

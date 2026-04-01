@@ -1,7 +1,5 @@
 import React from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 import { configureClient } from '../../client/__mocks__/index';
 import { getClient } from '../../client/oidc-react';
@@ -33,7 +31,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   const client = getClient();
   const profileBackendUrl = 'https://localhost/profileGraphql/';
   let profileActions: ProfileActions;
-  let dom: ReactWrapper;
+  let unmount: () => void;
   let restoreEnv: AnyFunction;
 
   const ProfileHookTester = (): React.ReactElement => {
@@ -73,7 +71,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
       profileBackendUrl
     });
 
-    dom = mount(<TestWrapper />);
+    ({ unmount } = render(<TestWrapper />));
   };
 
   beforeAll(async () => {
@@ -95,23 +93,21 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   });
 
   beforeEach(() => {
-    if (dom && dom.length) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
     logoutUser(client);
     clearApiTokens(client);
   });
 
   const getProfileStatus = (): FetchStatus | undefined => {
-    dom.update();
-    const el = dom.find('#request-status').at(0);
-    return el && el.length ? (el.text() as FetchStatus) : undefined;
+    const text = document.getElementById('request-status')?.textContent;
+    return text ? (text as FetchStatus) : undefined;
   };
 
   const getApiAccessTokenStatus = (): FetchStatus | undefined => {
-    dom.update();
-    const el = dom.find('#api-token-status').at(0);
-    return el && el.length ? (el.text() as FetchStatus) : undefined;
+    const text = document.getElementById('api-token-status')?.textContent;
+    return text ? (text as FetchStatus) : undefined;
   };
 
   it('depends on apiAccessToken hook and changes with it', async () => {

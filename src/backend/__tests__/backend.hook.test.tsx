@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 import { setEnv } from '../../tests/client.test.helper';
 import { useBackendWithApiTokens, BackendActions } from '../backend';
@@ -31,7 +29,7 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
   };
   const setRequestMockResponse = initMockResponses(fetchMock, backendUrl);
   let backendActions: BackendActions;
-  let dom: ReactWrapper;
+  let unmount: () => void;
   let restoreEnv: AnyFunction;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
 
@@ -62,7 +60,7 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
       }
     );
 
-    dom = mount(<TestWrapper />);
+    ({ unmount } = render(<TestWrapper />));
   };
 
   const updateApiAccessTokenMockStatus = async (
@@ -99,8 +97,8 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
   });
 
   beforeEach(() => {
-    if (dom && dom.length) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
   });
 

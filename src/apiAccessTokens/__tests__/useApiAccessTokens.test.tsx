@@ -1,7 +1,5 @@
 import React from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 import { configureClient } from '../../client/__mocks__/index';
 import { getClient } from '../../client/oidc-react';
@@ -28,7 +26,7 @@ describe('useApiAccessTokens hook ', () => {
   const config = configureClient();
   const testAudience = config.profileApiTokenAudience;
   let apiTokenActions: ApiAccessTokenActions;
-  let dom: ReactWrapper;
+  let unmount: () => void;
 
   const HookTester = (): React.ReactElement => {
     apiTokenActions = useApiAccessTokens(testAudience);
@@ -46,7 +44,7 @@ describe('useApiAccessTokens hook ', () => {
     if (user) {
       await setUser(user);
     }
-    dom = mount(<HookTester />);
+    ({ unmount } = render(<HookTester />));
   };
 
   beforeAll(async () => {
@@ -61,18 +59,15 @@ describe('useApiAccessTokens hook ', () => {
     mockMutator.resetMock();
   });
   beforeEach(() => {
-    if (dom) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
     logoutUser(client);
     clearApiTokens(client);
   });
 
   const getApiTokenStatus = (): FetchStatus | undefined => {
-    const text = dom
-      .find('#api-token-status')
-      .at(0)
-      .text();
+    const text = document.getElementById('api-token-status')?.textContent;
     return text ? (text as FetchStatus) : undefined;
   };
 

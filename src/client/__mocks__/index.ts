@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import { ReactWrapper } from 'enzyme';
 import { UserManager } from 'oidc-client';
 import {
   Client,
@@ -93,18 +92,19 @@ export const promiseDefaultTimeout = 20;
 export const requestDelayForStatusChangeDetectionInMs = 70;
 
 export const getClientDataFromComponent = (
-  dom: ReactWrapper,
   selector: string
 ): ClientValues | undefined => {
-  const component = dom.find(selector).at(0);
+  const component = document.querySelector(selector);
   if (!component) {
     return;
   }
-  const status = component.find('.status').text();
-  const authenticated = component.find('.authenticated').text() === 'true';
-  const initialized = component.find('.initialized').text() === 'true';
-  const error = component.find('.error').text() || undefined;
-  const email = component.find('.email').text() || undefined;
+  const status = component.querySelector('.status')?.textContent || '';
+  const authenticated =
+    component.querySelector('.authenticated')?.textContent === 'true';
+  const initialized =
+    component.querySelector('.initialized')?.textContent === 'true';
+  const error = component.querySelector('.error')?.textContent || undefined;
+  const email = component.querySelector('.email')?.textContent || undefined;
   // eslint-disable-next-line consistent-return
   return {
     status,
@@ -116,11 +116,10 @@ export const getClientDataFromComponent = (
 };
 
 export const matchClientDataWithComponent = (
-  dom: ReactWrapper,
   selector: string,
   client: Client
 ): ClientValues | undefined => {
-  const values = getClientDataFromComponent(dom, selector);
+  const values = getClientDataFromComponent(selector);
   expect(values).toBeDefined();
   const user = client.getUser();
   if (values) {
