@@ -134,11 +134,9 @@ export function createOidcClient(): Client {
     if (isAuthenticated()) {
       const user = getUserData() as unknown as User;
       const userData = user && user.profile;
-      if (
-        userData &&
-        userData.name &&
-        (userData.session_state || userData.amr)
-      ) {
+      // oidc-client-ts filters 'amr' from profile by default and stores
+      // 'session_state' as a top-level User field, not in profile claims
+      if (userData && userData.name && (user.session_state || userData.session_state || userData.amr)) {
         return {
           name: userData.name,
           given_name: userData.given_name,
