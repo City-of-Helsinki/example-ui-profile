@@ -3,7 +3,7 @@
 Example UI application handles logins to OIDC provider and loads Helsinki
 Profile.
 
-App uses [oidc-react.js](https://github.com/IdentityModel/oidc-client-js/wiki) for all calls to the OIDC provider. Library is
+App uses [oidc-client-ts](https://github.com/authts/oidc-client-ts) for all calls to the OIDC provider. Library is
 wrapped with "client" (client/index.ts) to unify connections to Keycloak
 server and Profiili API.
 
@@ -91,7 +91,7 @@ docker run --env-file=.env.development -p 3000:8080 helsinki/example-ui-profile
 
 ### Docker compose
 
-Note that the composed build will stop to the 'development' stage in Dockerfile and uses 'react-scripts start' command and not nginx.
+Note that the composed build will stop to the 'development' stage in Dockerfile and uses 'vite' dev server and not nginx.
 
 The env-file is fixed to '.env.development" in the 'docker-compose.yml'.
 
@@ -126,8 +126,7 @@ Runs tests with coverage outputted to console. Results are saved to /coverage No
 
 ### yarn test:coverage-for-sonar
 
-(Legacy)
-Runs tests with coverage and its results are saved as an xml file by jest-sonar-reporter.
+Runs tests with coverage and its results are saved as an xml file (JUnit format).
 This file can be sent to Sonar with Sonar Scanner (CLI). Report is /reports
 
 ### yarn update-runtime-env
@@ -135,8 +134,7 @@ This file can be sent to Sonar with Sonar Scanner (CLI). Report is /reports
 Generates variable object used when app is running. Generated object is stored at `public/env-config.js` and available
 as `window._env_` object.
 
-Generation uses `react-scripts` internals, so values come from either environment variables or files (according
-[react-scripts documentation](https://create-react-app.dev/docs/adding-custom-environment-variables/#what-other-env-files-can-be-used)).
+Generation uses `dotenv` and `dotenv-expand` to load values from environment variables or `.env` files.
 
 ## Logging in locally with Keycloak and using non-chromium browser
 
