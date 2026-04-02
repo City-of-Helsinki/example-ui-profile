@@ -39,7 +39,9 @@
     "react-router-dom": "^5.3.3",
     "redux": "^4.2.0",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.58.0"
+    "typescript-eslint": "^8.58.0",
+    "vite": "^8.0.3",
+    "@vitejs/plugin-react": "^6.0.1"
   },
   "scripts": {
     "start": "yarn run update-runtime-env && vite",
@@ -69,7 +71,6 @@
   },
   "devDependencies": {
     "@testing-library/react": "^12.1.5",
-    "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.2",
     "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
@@ -78,7 +79,6 @@
     "eslint-plugin-react": "^7.37.5",
     "jsdom": "^29.0.1",
     "ts-node": "^10.9.2",
-    "vite": "^8.0.3",
     "vitest": "^4.1.2"
   }
 }
