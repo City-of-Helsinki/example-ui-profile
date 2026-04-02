@@ -201,9 +201,8 @@ export async function getProfileData(
 }
 
 export async function clearGraphQlClient(): Promise<void> {
-  const client = getProfileGqlClient();
-  if (client) {
-    await resetClient(client);
+  if (profileGqlClient) {
+    await resetClient(profileGqlClient);
     profileGqlClient = undefined;
     lastProfileToken = undefined;
   }
