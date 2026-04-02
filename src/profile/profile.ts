@@ -108,6 +108,7 @@ const MY_PROFILE_QUERY = gql`
 `;
 
 let profileGqlClient: GraphQLClient | undefined;
+let lastProfileToken: string | undefined;
 
 export type ProfileDataType = string | AnyObject | undefined;
 export type ProfileErrorType = Error | GraphQLClientError | string | undefined;
@@ -128,11 +129,12 @@ type Request = AuthorizedRequest<ReturnData, FetchProps>;
 export type ProfileActions = AuthorizedApiActions<ReturnData, FetchProps>;
 
 export function getProfileGqlClient(token?: string): GraphQLClient | undefined {
-  if (!profileGqlClient) {
+  if (!profileGqlClient || token !== lastProfileToken) {
     const uri = window._env_.REACT_APP_PROFILE_BACKEND_URL;
     if (!token || !uri) {
       return undefined;
     }
+    lastProfileToken = token;
     profileGqlClient = createGraphQLClient(uri, token);
   }
   return profileGqlClient;
@@ -203,6 +205,7 @@ export async function clearGraphQlClient(): Promise<void> {
   if (client) {
     await resetClient(client);
     profileGqlClient = undefined;
+    lastProfileToken = undefined;
   }
   return Promise.resolve();
 }
