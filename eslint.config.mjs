@@ -10,7 +10,7 @@ import vitestPlugin from 'eslint-plugin-vitest';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['node_modules', 'dist', 'build', 'public', 'src/serviceWorker.ts'] },
+  { ignores: ['node_modules', 'dist', 'build', 'public'] },
   {
     files: ['src/**/*.{js,ts,tsx}'],
     extends: [
