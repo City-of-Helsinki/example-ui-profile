@@ -8,7 +8,7 @@ export interface ClientContextProps {
 }
 
 export const ClientContext = React.createContext<ClientContextProps | null>(
-  null
+  null,
 );
 
 export const ClientProvider: FC<Partial<ClientConfig>> = ({ children }) => {
@@ -16,7 +16,7 @@ export const ClientProvider: FC<Partial<ClientConfig>> = ({ children }) => {
   return (
     <ClientContext.Provider
       value={{
-        client
+        client,
       }}>
       {children}
     </ClientContext.Provider>

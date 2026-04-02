@@ -124,7 +124,7 @@ const Header = (): React.ReactElement => {
     userTokenLink,
     userInfoLink,
     profileLink,
-    backendLink
+    backendLink,
   ];
 
   return (
@@ -138,7 +138,7 @@ const Header = (): React.ReactElement => {
       skipTo="#content"
       skipToContentLabel="Skip to main content">
       <Navigation.Row variant="inline">
-        {links.map(link => link)}
+        {links.map((link) => link)}
       </Navigation.Row>
       <Navigation.Actions>
         {initialized && (

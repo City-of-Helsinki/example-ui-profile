@@ -1,37 +1,39 @@
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
-import { configure } from 'enzyme';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { GlobalWithFetchMock } from 'jest-fetch-mock';
-import { UserManager, UserManagerSettings } from 'oidc-client';
+import { UserManager, UserManagerSettings } from 'oidc-client-ts';
 import {
   mockMutatorGetterOidc,
-  mockOidcUserManager
+  mockOidcUserManager,
 } from './client/__mocks__/oidc-react-mock';
 import { AnyFunction } from './common';
 
-const customGlobal: GlobalWithFetchMock = global as GlobalWithFetchMock;
-// eslint-disable-next-line import/no-extraneous-dependencies
+const customGlobal: GlobalWithFetchMock =
+  global as unknown as GlobalWithFetchMock;
+// jest-fetch-mock internally calls jest.fn(), alias vi as jest so it works with Vitest
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(global as any).jest = vi;
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 customGlobal.fetch = require('jest-fetch-mock');
 
 customGlobal.fetchMock = customGlobal.fetch;
 
-configure({ adapter: new Adapter() });
-
-jest.mock('react-router', () => ({
+vi.mock('react-router', async () => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore: expected ts type error
-  ...jest.requireActual('react-router'),
+  ...(await vi.importActual('react-router')),
   useHistory: (): Record<string, AnyFunction> => ({
-    push: jest.fn()
-  })
+    push: vi.fn(),
+  }),
 }));
 
-jest.mock('./config', () => {
-  jest.requireActual('../public/test-env-config');
-  return jest.requireActual('./config');
+vi.mock('./config', async () => {
+  await vi.importActual('../public/test-env-config');
+  return vi.importActual('./config');
 });
 
-jest.mock('oidc-client', () => {
+vi.mock('oidc-client-ts', async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actual = (await vi.importActual('oidc-client-ts')) as any;
   class MockUserManagerClass {
     constructor(settings: UserManagerSettings) {
       const mockMutator = mockMutatorGetterOidc();
@@ -41,11 +43,9 @@ jest.mock('oidc-client', () => {
     }
   }
   return {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: expected ts type error
-    ...jest.requireActual('oidc-client'),
-    UserManager: MockUserManagerClass
+    ...actual,
+    UserManager: MockUserManagerClass,
   };
 });
 
-jest.mock('./client/http-poller');
+vi.mock('./client/http-poller');

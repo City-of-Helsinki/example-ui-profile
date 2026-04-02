@@ -3,7 +3,7 @@ import React from 'react';
 import styles from './styles.module.css';
 
 const DemoWrapper = (
-  props: React.PropsWithChildren<{ title: string }>
+  props: React.PropsWithChildren<{ title: string }>,
 ): React.ReactElement => {
   const { title, children } = props;
   return (

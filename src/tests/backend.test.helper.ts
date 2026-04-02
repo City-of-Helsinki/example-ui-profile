@@ -10,7 +10,7 @@ export type MockResponseProps = {
 export default function initMockResponses(
   fetchMock: FetchMock,
   backendUrl: string,
-  defaultResponse?: AnyObject
+  defaultResponse?: AnyObject,
 ): (props?: MockResponseProps) => void {
   const setRequestMockResponse = (props: MockResponseProps = {}) => {
     fetchMock.mockIf(backendUrl, async () => {
@@ -18,22 +18,22 @@ export default function initMockResponses(
       if (causeException) {
         return Promise.resolve({
           status: 200,
-          body: 'this_is_malformed_json}'
+          body: 'this_is_malformed_json}',
         });
       }
       if (return401) {
         return Promise.resolve({
           status: 401,
-          body: 'forbidden'
+          body: 'forbidden',
         });
       }
       return Promise.resolve({
         status: 200,
-        body: JSON.stringify(responseData || defaultResponse)
+        body: JSON.stringify(responseData || defaultResponse),
       });
     });
   };
-  return props => {
+  return (props) => {
     setRequestMockResponse(props);
   };
 }

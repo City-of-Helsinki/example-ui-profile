@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
+import { render, waitFor, act } from '@testing-library/react';
 import { FetchMock } from 'jest-fetch-mock';
 import { setEnv } from '../../tests/client.test.helper';
 import { useBackendWithApiTokens, BackendActions } from '../backend';
@@ -11,27 +9,27 @@ import {
   getMockApiAccessTokensHookData,
   resetMockApiAccessTokensHookData,
   MockApiAccessTokensHookData,
-  resetAndSetMockApiAccessTokensHookData
+  resetAndSetMockApiAccessTokensHookData,
 } from '../../apiAccessTokens/__mocks__/useApiAccessTokens';
 import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 import initMockResponses, {
-  MockResponseProps
+  MockResponseProps,
 } from '../../tests/backend.test.helper';
 import { configureClient } from '../../client/__mocks__';
 
-jest.mock('../../apiAccessTokens/useApiAccessTokens');
+vi.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   configureClient();
   const backendUrl = 'https://localhost/';
   const validResponseData = {
-    pet_name: 'petName'
+    pet_name: 'petName',
   };
   const setRequestMockResponse = initMockResponses(fetchMock, backendUrl);
   let backendActions: BackendActions;
-  let dom: ReactWrapper;
+  let unmount: () => void;
   let restoreEnv: AnyFunction;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
 
@@ -52,38 +50,38 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
     props: {
       apiTokenState?: MockApiAccessTokensHookData;
       backendResponseProps?: MockResponseProps;
-    } = {}
+    } = {},
   ): Promise<void> => {
     const { apiTokenState, backendResponseProps } = props;
     resetAndSetMockApiAccessTokensHookData(apiTokenState);
     setRequestMockResponse(
       backendResponseProps || {
-        responseData: validResponseData
-      }
+        responseData: validResponseData,
+      },
     );
 
-    dom = mount(<TestWrapper />);
+    ({ unmount } = render(<TestWrapper />));
   };
 
   const updateApiAccessTokenMockStatus = async (
-    newStatus: FetchStatus
+    newStatus: FetchStatus,
   ): Promise<void> => {
     mockApiAccessTokensActions.status = newStatus;
     return waitFor(() => {
-      forceUpdate(old => old + 1);
+      forceUpdate((old) => old + 1);
       expect(backendActions.getApiTokenStatus()).toBe(newStatus);
     });
   };
 
   const waitForRequestUpdate = async (status: FetchStatus): Promise<void> =>
     waitFor(() => {
-      forceUpdate(old => old + 1);
+      forceUpdate((old) => old + 1);
       expect(backendActions.getRequestStatus()).toBe(status);
     });
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_BACKEND_URL: backendUrl
+      REACT_APP_BACKEND_URL: backendUrl,
     });
     fetchMock.enableMocks();
   });
@@ -99,8 +97,8 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
   });
 
   beforeEach(() => {
-    if (dom && dom.length) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
   });
 
@@ -114,7 +112,7 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
       await updateApiAccessTokenMockStatus('loaded');
       await waitForRequestUpdate('loaded');
       await waitFor(() =>
-        expect(backendActions.getData()).toEqual(validResponseData)
+        expect(backendActions.getData()).toEqual(validResponseData),
       );
     });
   });
@@ -126,11 +124,11 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
       await waitForRequestUpdate('error');
       fetchMock.resetMocks();
       setRequestMockResponse({
-        responseData: validResponseData
+        responseData: validResponseData,
       });
       backendActions.request();
       await waitFor(() =>
-        expect(backendActions.getData()).toEqual(validResponseData)
+        expect(backendActions.getData()).toEqual(validResponseData),
       );
     });
   });

@@ -1,23 +1,114 @@
 import to from 'await-to-js';
 import { GraphQLError } from 'graphql';
-import { loader } from 'graphql.macro';
 import { useCallback } from 'react';
-import { ApolloError } from '@apollo/client';
+import { ApolloError, gql } from '@apollo/client';
 import {
   GraphQLClient,
   createGraphQLClient,
   GraphQLClientError,
-  resetClient
+  resetClient,
 } from '../graphql/graphqlClient';
 import { AnyObject } from '../common';
 
 import useAuthorizedApiRequests, {
   AuthorizedRequest,
-  AuthorizedApiActions
+  AuthorizedApiActions,
 } from '../apiAccessTokens/useAuthorizedApiRequests';
 import { getClientConfig } from '../client';
 
-let profileGqlClient: GraphQLClient;
+const MY_PROFILE_QUERY = gql`
+  query MyProfileQuery {
+    myProfile {
+      id
+      firstName
+      lastName
+      nickname
+      language
+      primaryAddress {
+        id
+        primary
+        address
+        postalCode
+        city
+        countryCode
+        addressType
+      }
+      addresses {
+        edges {
+          node {
+            primary
+            id
+            address
+            postalCode
+            city
+            countryCode
+            addressType
+          }
+        }
+      }
+      primaryEmail {
+        id
+        email
+        primary
+        emailType
+        verified
+      }
+      emails {
+        edges {
+          node {
+            primary
+            id
+            email
+            emailType
+            verified
+          }
+        }
+      }
+      primaryPhone {
+        id
+        phone
+        primary
+        phoneType
+      }
+      phones {
+        edges {
+          node {
+            primary
+            id
+            phone
+            phoneType
+          }
+        }
+      }
+      verifiedPersonalInformation {
+        firstName
+        lastName
+        givenName
+        nationalIdentificationNumber
+        municipalityOfResidence
+        municipalityOfResidenceNumber
+        permanentAddress {
+          streetAddress
+          postalCode
+          postOffice
+        }
+        temporaryAddress {
+          streetAddress
+          postalCode
+          postOffice
+        }
+        permanentForeignAddress {
+          streetAddress
+          additionalAddress
+          countryCode
+        }
+      }
+    }
+  }
+`;
+
+let profileGqlClient: GraphQLClient | undefined;
+let lastProfileToken: string | undefined;
 
 export type ProfileDataType = string | AnyObject | undefined;
 export type ProfileErrorType = Error | GraphQLClientError | string | undefined;
@@ -38,18 +129,19 @@ type Request = AuthorizedRequest<ReturnData, FetchProps>;
 export type ProfileActions = AuthorizedApiActions<ReturnData, FetchProps>;
 
 export function getProfileGqlClient(token?: string): GraphQLClient | undefined {
-  if (!profileGqlClient) {
+  if (!profileGqlClient || token !== lastProfileToken) {
     const uri = window._env_.REACT_APP_PROFILE_BACKEND_URL;
     if (!token || !uri) {
       return undefined;
     }
+    lastProfileToken = token;
     profileGqlClient = createGraphQLClient(uri, token);
   }
   return profileGqlClient;
 }
 
 export function convertQueryToData(
-  queryResult: ProfileQueryResult
+  queryResult: ProfileQueryResult,
 ): ProfileData | undefined {
   const profile = queryResult && queryResult.data && queryResult.data.myProfile;
   if (!profile) {
@@ -66,36 +158,35 @@ export function convertQueryToData(
     lastName,
     nickname,
     language,
-    email: getEmail(profile)
+    email: getEmail(profile),
   };
 }
 
 export async function getProfileData(
-  token?: string
+  token?: string,
 ): Promise<ProfileQueryResult | GraphQLClientError> {
   const client = getProfileGqlClient(token);
   if (!client) {
     return {
       error: new Error(
-        'getProfileGqlClient returned undefined. Missing ApiToken for env.REACT_APP_<oidc provider>_PROFILE_API_TOKEN_AUDIENCE or missing env.REACT_APP_PROFILE_BACKEND_URL '
-      )
+        'getProfileGqlClient returned undefined. Missing ApiToken for env.REACT_APP_<oidc provider>_PROFILE_API_TOKEN_AUDIENCE or missing env.REACT_APP_PROFILE_BACKEND_URL ',
+      ),
     };
   }
-  const MY_PROFILE_QUERY = loader('../graphql/MyProfileQuery.graphql');
   const [error, result]: [
     Error | ApolloError | null,
-    ProfileQueryResult | undefined
+    ProfileQueryResult | undefined,
   ] = await to(
     client.query({
       errorPolicy: 'all',
       query: MY_PROFILE_QUERY,
-      fetchPolicy: 'no-cache'
-    })
+      fetchPolicy: 'no-cache',
+    }),
   );
   if (error || !result) {
     return {
       error: error || undefined,
-      message: 'Query error'
+      message: 'Query error',
     };
   }
   const data = convertQueryToData(result);
@@ -103,21 +194,22 @@ export async function getProfileData(
     return {
       error: result.errors
         ? result.errors[0]
-        : new Error('Query result is missing data.myProfile')
+        : new Error('Query result is missing data.myProfile'),
     };
   }
   return result;
 }
 
 export async function clearGraphQlClient(): Promise<void> {
-  const client = getProfileGqlClient();
-  if (client) {
-    await resetClient(client);
+  if (profileGqlClient) {
+    await resetClient(profileGqlClient);
+    profileGqlClient = undefined;
+    lastProfileToken = undefined;
   }
   return Promise.resolve();
 }
 
-const executeAPIAction: Request = async options => {
+const executeAPIAction: Request = async (options) => {
   const result = await getProfileData(options.token);
   const resultAsError = result as GraphQLClientError;
   if (resultAsError.error) {
@@ -129,10 +221,13 @@ const executeAPIAction: Request = async options => {
 };
 
 export function useProfileWithApiTokens(): ProfileActions {
-  const req: Request = useCallback(async props => executeAPIAction(props), []);
+  const req: Request = useCallback(
+    async (props) => executeAPIAction(props),
+    [],
+  );
   const config = getClientConfig();
   return useAuthorizedApiRequests(req, {
     audience: config.profileApiTokenAudience,
-    autoFetchProps: {}
+    autoFetchProps: {},
   });
 }

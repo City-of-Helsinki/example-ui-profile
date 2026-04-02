@@ -4,7 +4,7 @@ import { ProfileData } from '../profile/profile';
 import { requestDelayForStatusChangeDetectionInMs } from '../client/__mocks__';
 
 export const createValidProfileResponseData = (
-  userData: AnyObject
+  userData: AnyObject,
 ): ProfileData => ({ data: { myProfile: { ...userData } } });
 
 export const mockProfileResponse = (options: {
@@ -13,41 +13,41 @@ export const mockProfileResponse = (options: {
   delay?: number;
   requestCallback?: AnyFunction;
 }): void => {
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   const { response, delay, requestCallback, profileBackendUrl } = options;
-  fetchMock.doMockOnceIf(profileBackendUrl, req => {
+  fetchMock.doMockOnceIf(profileBackendUrl, (req) => {
     if (requestCallback) {
       requestCallback(req);
     }
-    return new Promise(resolve =>
+    return new Promise((resolve) =>
       setTimeout(() => {
         resolve(response);
-      }, delay || requestDelayForStatusChangeDetectionInMs)
+      }, delay || requestDelayForStatusChangeDetectionInMs),
     );
   });
 };
 
 export const createValidProfileResponse = (
-  overrides?: ProfileData
+  overrides?: ProfileData,
 ): { status: number; body: string } => {
   const responseBody = createValidProfileResponseData({
     firstName: 'firstName',
-    ...overrides
+    ...overrides,
   });
   return {
     status: 200,
-    body: JSON.stringify(responseBody)
+    body: JSON.stringify(responseBody),
   };
 };
 
 export const createInvalidProfileResponse = (
-  overrides?: ProfileData
+  overrides?: ProfileData,
 ): { status: number; body: string } => {
   const responseBody = {
-    ...overrides
+    ...overrides,
   };
   return {
     status: 401,
-    body: JSON.stringify(responseBody)
+    body: JSON.stringify(responseBody),
   };
 };

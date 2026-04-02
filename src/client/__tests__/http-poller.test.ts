@@ -10,23 +10,23 @@ type TestProps = {
   maxPollCount: number;
 };
 
-jest.unmock('../http-poller');
+vi.unmock('../http-poller');
 
 const originalSetTimeout = global.setTimeout;
 const setImmediate = (f: (value?: unknown) => void) => originalSetTimeout(f, 0);
 
 describe(`http-poller`, () => {
-  const pollFunctionMockCallback = jest.fn();
-  const onErrorMockCallback = jest.fn();
-  const shouldPollMockCallback = jest.fn();
-  const loadCallTracker = jest.fn();
+  const pollFunctionMockCallback = vi.fn();
+  const onErrorMockCallback = vi.fn();
+  const shouldPollMockCallback = vi.fn();
+  const loadCallTracker = vi.fn();
   const intervalInMs = 200;
   let poller: HttpPoller;
   const pollerDefaultTestProps: TestProps = {
     requestResponse: { status: HttpStatusCode.OK },
     onErrorReturnValue: { keepPolling: true },
     shouldPollReturnValue: true,
-    maxPollCount: 0
+    maxPollCount: 0,
   };
   function createPoller(responses: TestProps): HttpPoller {
     let pollCount = 0;
@@ -44,7 +44,7 @@ describe(`http-poller`, () => {
           }, intervalInMs * 2);
         });
       },
-      onError: returnedHttpStatus => {
+      onError: (returnedHttpStatus) => {
         onErrorMockCallback(returnedHttpStatus);
         return responses.onErrorReturnValue;
       },
@@ -56,11 +56,11 @@ describe(`http-poller`, () => {
         pollCount += 1;
         return responses.shouldPollReturnValue;
       },
-      pollIntervalInMs: intervalInMs
+      pollIntervalInMs: intervalInMs,
     });
   }
   const advanceOneInterval = async () => {
-    jest.advanceTimersByTime(intervalInMs + 1);
+    vi.advanceTimersByTime(intervalInMs + 1);
   };
   const advanceToTimerEnd = async () => {
     await advanceOneInterval();
@@ -69,7 +69,7 @@ describe(`http-poller`, () => {
     await advanceOneInterval();
     await advanceOneInterval();
     // https://stackoverflow.com/questions/52177631/jest-timer-and-promise-dont-work-well-settimeout-and-async-function
-    await new Promise(resolve => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
   };
   const advanceFromStartTimerToLoadEnd = async () => {
     await advanceToTimerEnd();
@@ -81,21 +81,21 @@ describe(`http-poller`, () => {
   };
   afterEach(() => {
     poller.stop();
-    jest.resetAllMocks();
-    jest.useRealTimers();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
   describe('Calling start() starts the timer and when timer ends ', () => {
     it('the pollFunction and shouldPoll have been called continuously', async () => {
       poller = createPoller({
-        ...pollerDefaultTestProps
+        ...pollerDefaultTestProps,
       });
       poller.start();
-      expect(shouldPollMockCallback).not.toBeCalled();
-      expect(pollFunctionMockCallback).not.toBeCalled();
-      expect(onErrorMockCallback).not.toBeCalled();
+      expect(shouldPollMockCallback).not.toHaveBeenCalled();
+      expect(pollFunctionMockCallback).not.toHaveBeenCalled();
+      expect(onErrorMockCallback).not.toHaveBeenCalled();
       await advanceToTimerEnd();
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(1);
       expect(pollFunctionMockCallback).toHaveBeenCalledTimes(1);
@@ -108,7 +108,7 @@ describe(`http-poller`, () => {
     it('the pollFunction should not be called if shouldPoll returns false', async () => {
       poller = createPoller({
         ...pollerDefaultTestProps,
-        shouldPollReturnValue: false
+        shouldPollReturnValue: false,
       });
       poller.start();
       await advanceToTimerEnd();
@@ -121,13 +121,15 @@ describe(`http-poller`, () => {
     it('the onError is called with responseStatus when response status is not httpStatus.OK (200). Polling continues when onError returns {keepPolling : true}', async () => {
       poller = createPoller({
         ...pollerDefaultTestProps,
-        requestResponse: { status: HttpStatusCode.FORBIDDEN }
+        requestResponse: { status: HttpStatusCode.FORBIDDEN },
       });
       poller.start();
       await advanceFromStartTimerToLoadEnd();
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(1);
       expect(onErrorMockCallback).toHaveBeenCalledTimes(1);
-      expect(onErrorMockCallback).toBeCalledWith(HttpStatusCode.FORBIDDEN);
+      expect(onErrorMockCallback).toHaveBeenCalledWith(
+        HttpStatusCode.FORBIDDEN,
+      );
       await advanceToTimerEnd();
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(2);
     });
@@ -135,12 +137,12 @@ describe(`http-poller`, () => {
       poller = createPoller({
         ...pollerDefaultTestProps,
         requestResponse: { status: -1 },
-        onErrorReturnValue: { keepPolling: false }
+        onErrorReturnValue: { keepPolling: false },
       });
       poller.start();
       await advanceFromStartTimerToLoadEnd();
       expect(onErrorMockCallback).toHaveBeenCalledTimes(1);
-      expect(onErrorMockCallback).toBeCalledWith(undefined);
+      expect(onErrorMockCallback).toHaveBeenCalledWith(undefined);
       expect(shouldPollMockCallback).toHaveBeenCalledTimes(1);
       expect(pollFunctionMockCallback).toHaveBeenCalledTimes(1);
       await advanceToTimerEnd();
@@ -149,7 +151,7 @@ describe(`http-poller`, () => {
     });
     it('Polling never starts if poller.stop is called', async () => {
       poller = createPoller({
-        ...pollerDefaultTestProps
+        ...pollerDefaultTestProps,
       });
       poller.start();
       poller.stop();
@@ -161,7 +163,7 @@ describe(`http-poller`, () => {
     it('Response is ignored if poller.stop is called after load has started', async () => {
       poller = createPoller({
         ...pollerDefaultTestProps,
-        requestResponse: { status: HttpStatusCode.FORBIDDEN }
+        requestResponse: { status: HttpStatusCode.FORBIDDEN },
       });
       poller.start();
       await advanceToTimerEnd();
@@ -177,7 +179,7 @@ describe(`http-poller`, () => {
     it('Multiple starts do not start multiple requests', async () => {
       poller = createPoller({
         ...pollerDefaultTestProps,
-        requestResponse: { status: HttpStatusCode.FORBIDDEN }
+        requestResponse: { status: HttpStatusCode.FORBIDDEN },
       });
       poller.start();
       poller.start();

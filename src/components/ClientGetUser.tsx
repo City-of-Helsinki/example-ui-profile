@@ -9,7 +9,7 @@ const ClientGetUser = (): React.ReactElement => {
     User | Error | undefined
   >();
   const [status, setStatus] = useState<'loading' | 'error' | 'loaded'>(
-    'loading'
+    'loading',
   );
   const client = getClient();
   const loadProfile = useCallback(async () => {
@@ -48,7 +48,7 @@ const ClientGetUser = (): React.ReactElement => {
                 ? profileDataOrError
                 : (profileDataOrError as User).profile,
               null,
-              2
+              2,
             )}
           </pre>
         )}

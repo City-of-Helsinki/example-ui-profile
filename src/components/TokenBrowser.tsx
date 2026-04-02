@@ -11,11 +11,11 @@ const TokenBrowser = (): React.ReactElement => {
   const [selectedId, changeSelectedId] = useState<string | undefined>();
   const apiTokens = {
     [config.exampleApiTokenAudience]: client.getApiToken(
-      config.exampleApiTokenAudience
+      config.exampleApiTokenAudience,
     ),
     [config.profileApiTokenAudience]: client.getApiToken(
-      config.profileApiTokenAudience
-    )
+      config.profileApiTokenAudience,
+    ),
   };
   const userTokens = client.getUserTokens();
   // Keycloak server returns object with also other data than tokens.
@@ -36,7 +36,7 @@ const TokenBrowser = (): React.ReactElement => {
       : undefined;
   const onTokenSelectionChange = (
     newToken: string | undefined,
-    id: string
+    id: string,
   ): void => {
     changeSelectedToken(newToken);
     changeSelectedId(id);
@@ -70,7 +70,7 @@ const TokenBrowser = (): React.ReactElement => {
     }
     return (
       <li>
-        {Object.keys(userTokens).map(key => (
+        {Object.keys(userTokens).map((key) => (
           <TokenSelection
             key={key}
             title={`Käyttäjän ${key}`}
@@ -88,7 +88,7 @@ const TokenBrowser = (): React.ReactElement => {
     }
     return (
       <div>
-        {Object.keys(apiTokens).map(key => (
+        {Object.keys(apiTokens).map((key) => (
           <TokenSelection
             key={key}
             title={`Api token ${key}`}

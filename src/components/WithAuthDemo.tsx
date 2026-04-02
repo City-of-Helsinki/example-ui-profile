@@ -15,7 +15,7 @@ const AuthComponent = (props: WithAuthChildProps): React.ReactElement => {
   );
 };
 const UnAuthComponent = (
-  props: WithAuthChildProps
+  props: WithAuthChildProps,
 ): React.ReactElement | null => {
   const initialized = props.client.isInitialized();
   return initialized ? (

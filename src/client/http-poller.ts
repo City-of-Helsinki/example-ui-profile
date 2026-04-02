@@ -19,7 +19,7 @@ export default function createHttpPoller({
   pollFunction,
   shouldPoll,
   onError,
-  pollIntervalInMs = defaultPollIntervalInMs
+  pollIntervalInMs = defaultPollIntervalInMs,
 }: HttpPollerProps): HttpPoller {
   let isPolling = false;
   let isForceStopped = false;
@@ -49,7 +49,7 @@ export default function createHttpPoller({
         startTimer();
         return;
       }
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+
       pollAndHandleResult();
     }, pollIntervalInMs);
   };
@@ -79,6 +79,6 @@ export default function createHttpPoller({
       isForceStopped = false;
       startTimer();
     },
-    stop
+    stop,
   };
 }
