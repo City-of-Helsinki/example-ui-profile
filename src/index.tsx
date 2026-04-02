@@ -26,4 +26,3 @@ if (
 }
 
 ReactDOM.render(<BrowserApp />, document.getElementById('root'));
-
