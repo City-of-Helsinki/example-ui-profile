@@ -42,7 +42,7 @@ RUN yarn config set network-timeout 300000
 RUN yarn install --frozen-lockfile --ignore-scripts && yarn cache clean --force
 
 # Copy all necessary files
-COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
+COPY tsconfig.json eslint.config.mjs .prettierrc .env .env.development .env.test /app/
 COPY /public/ /app/public
 COPY /scripts/ /app/scripts
 COPY /src/ /app/src
