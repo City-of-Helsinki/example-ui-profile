@@ -1,4 +1,4 @@
-/* eslint-disable camelcase */
+import type { Mock } from 'vitest';
 import { UserManager } from 'oidc-client-ts';
 import {
   Client,
@@ -6,14 +6,14 @@ import {
   ClientEventId,
   ClientConfig,
   setClientConfig,
-  Token
+  Token,
 } from '..';
 import config from '../../config';
 import {
   AnyObject,
   AnyFunction,
   AnyNonNullishValue,
-  AnyValue
+  AnyValue,
 } from '../../common';
 import { getSessionStorageKey } from '../oidc-react';
 
@@ -43,9 +43,7 @@ export type MockMutator = {
   setTokens: (newTokens: AnyNonNullishValue) => AnyNonNullishValue;
   getInstance: () => ClientInstance;
   setInstance: (instance: ClientInstance) => void;
-  createValidUserData: (
-    props?: AnyNonNullishValue
-  ) => {
+  createValidUserData: (props?: AnyNonNullishValue) => {
     email: string;
     name: string;
     given_name: string;
@@ -68,7 +66,7 @@ export type ClientValues = {
   email: string | undefined;
 };
 
-export type EventListeners = Record<ClientEventId, vi.Mock> & {
+export type EventListeners = Record<ClientEventId, Mock> & {
   dispose: () => void;
   getLastCallPayload: (eventType: ClientEventId) => Payload;
   getCallCount: (eventType: ClientEventId) => number;
@@ -76,7 +74,7 @@ export type EventListeners = Record<ClientEventId, vi.Mock> & {
 
 export type ListenerSetter = (
   eventType: string,
-  listener: AnyFunction
+  listener: AnyFunction,
 ) => AnyFunction;
 
 type Payload = AnyValue;
@@ -92,7 +90,7 @@ export const promiseDefaultTimeout = 20;
 export const requestDelayForStatusChangeDetectionInMs = 70;
 
 export const getClientDataFromComponent = (
-  selector: string
+  selector: string,
 ): ClientValues | undefined => {
   const component = document.querySelector(selector);
   if (!component) {
@@ -105,19 +103,19 @@ export const getClientDataFromComponent = (
     component.querySelector('.initialized')?.textContent === 'true';
   const error = component.querySelector('.error')?.textContent || undefined;
   const email = component.querySelector('.email')?.textContent || undefined;
-  // eslint-disable-next-line consistent-return
+
   return {
     status,
     authenticated,
     initialized,
     error,
-    email
+    email,
   };
 };
 
 export const matchClientDataWithComponent = (
   selector: string,
-  client: Client
+  client: Client,
 ): ClientValues | undefined => {
   const values = getClientDataFromComponent(selector);
   expect(values).toBeDefined();
@@ -132,11 +130,11 @@ export const matchClientDataWithComponent = (
 };
 
 export const configureClient = (
-  overrides?: Partial<ClientConfig>
+  overrides?: Partial<ClientConfig>,
 ): ClientConfig => setClientConfig({ ...config.keycloakConfig, ...overrides });
 
 export const createEventListeners = (
-  addEventListener: ListenerSetter
+  addEventListener: ListenerSetter,
 ): EventListeners => {
   const listeners: Partial<EventListeners> = {};
   const disposers: AnyFunction[] = [];
@@ -164,16 +162,15 @@ export const createEventListeners = (
   return {
     ...(listeners as EventListeners),
     dispose: (): void => {
-      disposers.forEach(disposer => disposer());
+      disposers.forEach((disposer) => disposer());
     },
     getLastCallPayload,
-    getCallCount
+    getCallCount,
   };
 };
 
 // imports in setUpTests.ts require "mock" prefix, therefore createMockMutator would be invalid
 export const mockMutatorCreator = (): MockMutator => {
-  /* eslint-disable @typescript-eslint/no-unused-vars */
   let clientInitResolvePayload: Payload;
   let clientInitRejectPayload: Payload;
   let loadProfileResolvePayload: Payload;
@@ -182,54 +179,53 @@ export const mockMutatorCreator = (): MockMutator => {
   let tokenParsed: AnyObject = {};
   let initCallCount = 0;
   let creationCount = 0;
-  let loginMock: vi.Mock;
-  let logoutMock: vi.Mock;
+  let loginMock: Mock;
+  let logoutMock: Mock;
   const tokens = {
     token: undefined,
     idToken: undefined,
-    refreshToken: undefined
+    refreshToken: undefined,
   };
   let clientInstance: ClientInstance;
-  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   const setClientInitPayload: MockMutator['setClientInitPayload'] = (
     resolvePayload,
-    rejectPayload
+    rejectPayload,
   ): void => {
     clientInitResolvePayload = resolvePayload;
     clientInitRejectPayload = rejectPayload;
   };
   const setLoadProfilePayload: MockMutator['setLoadProfilePayload'] = (
     resolvePayload,
-    rejectPayload
+    rejectPayload,
   ): void => {
     loadProfileResolvePayload = resolvePayload;
     loadProfileRejectPayload = rejectPayload;
   };
 
-  const getClientInitResolvePayload: MockMutator['getClientInitResolvePayload'] = () =>
-    clientInitResolvePayload;
-  const getClientInitRejectPayload: MockMutator['getClientInitRejectPayload'] = () =>
-    clientInitRejectPayload;
-  const getLoadProfileResolvePayload: MockMutator['getLoadProfileResolvePayload'] = () =>
-    loadProfileResolvePayload;
-  const getLoadProfileRejectPayload: MockMutator['getLoadProfileRejectPayload'] = () =>
-    loadProfileRejectPayload;
+  const getClientInitResolvePayload: MockMutator['getClientInitResolvePayload'] =
+    () => clientInitResolvePayload;
+  const getClientInitRejectPayload: MockMutator['getClientInitRejectPayload'] =
+    () => clientInitRejectPayload;
+  const getLoadProfileResolvePayload: MockMutator['getLoadProfileResolvePayload'] =
+    () => loadProfileResolvePayload;
+  const getLoadProfileRejectPayload: MockMutator['getLoadProfileRejectPayload'] =
+    () => loadProfileRejectPayload;
 
   const setUserToSessionStorage = (data: AnyObject | string) => {
     const key = getSessionStorageKey(config.keycloakConfig);
     sessionStorage.setItem(
       key,
-      typeof data === 'object' ? JSON.stringify(data) : data
+      typeof data === 'object' ? JSON.stringify(data) : data,
     );
   };
 
   const setTokenParsed: MockMutator['setTokenParsed'] = (
-    props: AnyObject
+    props: AnyObject,
   ): void => {
     tokenParsed = Object.assign(tokenParsed, {
       ...user,
-      ...props
+      ...props,
     });
     setUserToSessionStorage({ profile: tokenParsed });
   };
@@ -241,10 +237,10 @@ export const mockMutatorCreator = (): MockMutator => {
     name: undefined,
     given_name: undefined,
     family_name: undefined,
-    email: undefined
+    email: undefined,
   });
 
-  const setUser: MockMutator['setUser'] = props => {
+  const setUser: MockMutator['setUser'] = (props) => {
     user = props || createEmptyUser();
     setTokenParsed(user);
   };
@@ -267,21 +263,21 @@ export const mockMutatorCreator = (): MockMutator => {
   const logoutCalled: MockMutator['logoutCalled'] = () => {
     logoutMock();
   };
-  const setTokens: MockMutator['setTokens'] = newTokens => {
+  const setTokens: MockMutator['setTokens'] = (newTokens) => {
     Object.assign(tokens, newTokens);
     return tokens;
   };
   const getTokens: MockMutator['getTokens'] = () => tokens;
   const getInstance: MockMutator['getInstance'] = () => clientInstance;
-  const setInstance: MockMutator['setInstance'] = instance => {
+  const setInstance: MockMutator['setInstance'] = (instance) => {
     clientInstance = instance;
   };
-  const createValidUserData: MockMutator['createValidUserData'] = props => ({
+  const createValidUserData: MockMutator['createValidUserData'] = (props) => ({
     name: 'valid user',
     given_name: 'valid',
     family_name: 'user',
     email: 'valid@user.fi',
-    ...props
+    ...props,
   });
   const resetMock: MockMutator['resetMock'] = () => {
     creationCount = 0;
@@ -299,7 +295,7 @@ export const mockMutatorCreator = (): MockMutator => {
     setTokens({
       token: undefined,
       idToken: undefined,
-      refreshToken: undefined
+      refreshToken: undefined,
     });
     tokenParsed.session_state = `session_state-${Date.now()}`;
     tokenParsed.amr = 'test';
@@ -329,6 +325,6 @@ export const mockMutatorCreator = (): MockMutator => {
     getLoadProfileResolvePayload,
     getLoadProfileRejectPayload,
     logoutCalled,
-    loginCalled
+    loginCalled,
   };
 };

@@ -1,9 +1,10 @@
+import type { Mock } from 'vitest';
 import { GlobalWithFetchMock } from 'jest-fetch-mock';
 import { HttpPoller, HttpPollerProps } from '../http-poller';
 
 type MockHttpPollerData = {
-  start: vi.Mock;
-  stop: vi.Mock;
+  start: Mock;
+  stop: Mock;
   props?: HttpPollerProps;
 };
 
@@ -11,13 +12,13 @@ type GlobalWithPollerData = GlobalWithFetchMock & {
   mockHttpPoller: MockHttpPollerData;
 };
 
-const globalWithPollerData = (global as unknown) as GlobalWithPollerData;
+const globalWithPollerData = global as unknown as GlobalWithPollerData;
 
 if (!globalWithPollerData.mockHttpPoller) {
   globalWithPollerData.mockHttpPoller = {
     start: vi.fn(),
     stop: vi.fn(),
-    props: undefined
+    props: undefined,
   };
 }
 const { mockHttpPoller } = globalWithPollerData;
@@ -27,7 +28,7 @@ export function getHttpPollerMockData(): MockHttpPollerData {
 }
 
 export default function createHttpPoller(
-  pollerProps: HttpPollerProps
+  pollerProps: HttpPollerProps,
 ): HttpPoller {
   mockHttpPoller.start.mockReset();
   mockHttpPoller.stop.mockReset();
@@ -38,6 +39,6 @@ export default function createHttpPoller(
     },
     stop: () => {
       mockHttpPoller.stop();
-    }
+    },
   };
 }

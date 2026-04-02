@@ -4,7 +4,7 @@ import {
   UserManager,
   UserManagerSettings,
   WebStorageStateStore,
-  User
+  User,
 } from 'oidc-client-ts';
 import HttpStatusCode from 'http-status-typed';
 
@@ -22,7 +22,7 @@ import {
   getLocationBasedUri,
   getTokenUri,
   createClientGetOrLoadUserFunction,
-  ClientConfig
+  ClientConfig,
 } from './index';
 import { AnyObject } from '../common';
 import createHttpPoller from './http-poller';
@@ -30,7 +30,7 @@ import createHttpPoller from './http-poller';
 let client: Client | null = null;
 
 function oidcUserToClientUser(user: User): ClientUser {
-  return (user as unknown) as ClientUser;
+  return user as unknown as ClientUser;
 }
 
 function bindEvents(
@@ -39,28 +39,34 @@ function bindEvents(
     onAuthChange: Client['onAuthChange'];
     setError: ClientFactory['setError'];
     eventTrigger: ClientFactory['eventTrigger'];
-  }
+  },
 ): void {
   const { onAuthChange, setError, eventTrigger } = eventFunctions;
   manager.events.addUserLoaded((user): void => {
-    eventTrigger(ClientEvent.USER_CHANGED, (user as unknown) as ClientUser);
+    eventTrigger(ClientEvent.USER_CHANGED, user as unknown as ClientUser);
   });
-  manager.events.addUserUnloaded((): boolean => onAuthChange(false));
-  manager.events.addUserSignedOut((): boolean => onAuthChange(false));
-  manager.events.addUserSessionChanged((): boolean => onAuthChange(false));
+  manager.events.addUserUnloaded((): void => {
+    onAuthChange(false);
+  });
+  manager.events.addUserSignedOut((): void => {
+    onAuthChange(false);
+  });
+  manager.events.addUserSessionChanged((): void => {
+    onAuthChange(false);
+  });
   manager.events.addSilentRenewError((renewError?: Error): void => {
     const errorObj = renewError || undefined;
     const message = errorObj ? errorObj.message : '';
     setError({
       type: ClientError.AUTH_REFRESH_ERROR,
-      message
+      message,
     });
   });
   manager.events.addAccessTokenExpired((): void =>
-    eventTrigger(ClientEvent.TOKEN_EXPIRED)
+    eventTrigger(ClientEvent.TOKEN_EXPIRED),
   );
   manager.events.addAccessTokenExpiring((): void =>
-    eventTrigger(ClientEvent.TOKEN_EXPIRING)
+    eventTrigger(ClientEvent.TOKEN_EXPIRING),
   );
 }
 
@@ -72,7 +78,7 @@ export function getSessionStorageKey(clientConfig?: ClientConfig): string {
 export function createOidcClient(): Client {
   if (!hasValidClientConfig()) {
     const errorMessage = 'Invalid client config';
-    // eslint-disable-next-line no-console
+
     console.error(errorMessage, getClientConfig());
     throw new Error(errorMessage);
   }
@@ -82,11 +88,11 @@ export function createOidcClient(): Client {
     authority: clientConfig.authority,
     automaticSilentRenew: clientConfig.automaticSilentRenew,
     client_id: clientConfig.clientId,
-    redirect_uri: getLocationBasedUri(clientConfig.callbackPath),
+    redirect_uri: getLocationBasedUri(clientConfig.callbackPath) || '',
     response_type: clientConfig.responseType,
     scope: clientConfig.scope,
     silent_redirect_uri: getLocationBasedUri(clientConfig.silentAuthPath),
-    post_logout_redirect_uri: getLocationBasedUri(clientConfig.logoutPath)
+    post_logout_redirect_uri: getLocationBasedUri(clientConfig.logoutPath),
   };
   const manager = new UserManager(oidcConfig);
   const {
@@ -97,13 +103,8 @@ export function createOidcClient(): Client {
     ...clientFunctions
   } = createClient();
 
-  const {
-    isAuthenticated,
-    isInitialized,
-    setStatus,
-    getStatus,
-    setError
-  } = clientFunctions;
+  const { isAuthenticated, isInitialized, setStatus, getStatus, setError } =
+    clientFunctions;
   if (clientConfig.enableLogging) {
     Log.setLogger(console);
     Log.setLevel(Log.DEBUG);
@@ -121,7 +122,7 @@ export function createOidcClient(): Client {
     }
     try {
       return JSON.parse(storedString);
-    } catch (e) {
+    } catch {
       return undefined;
     }
   };
@@ -131,19 +132,19 @@ export function createOidcClient(): Client {
 
   const getUser: Client['getUser'] = () => {
     if (isAuthenticated()) {
-      const user = (getUserData() as unknown) as User;
+      const user = getUserData() as unknown as User;
       const userData = user && user.profile;
       if (
         userData &&
         userData.name &&
         (userData.session_state || userData.amr)
       ) {
-        return ({
+        return {
           name: userData.name,
           given_name: userData.given_name,
           family_name: userData.family_name,
-          email: userData.email
-        } as unknown) as ClientUser;
+          email: userData.email,
+        } as unknown as ClientUser;
       }
     }
     return undefined;
@@ -154,7 +155,7 @@ export function createOidcClient(): Client {
       return false;
     }
     const statusChanged = setStatus(
-      authenticated ? ClientStatus.AUTHORIZED : ClientStatus.UNAUTHORIZED
+      authenticated ? ClientStatus.AUTHORIZED : ClientStatus.UNAUTHORIZED,
     );
     if (statusChanged) {
       eventTrigger(getStatus(), getUser());
@@ -191,7 +192,7 @@ export function createOidcClient(): Client {
           if (reason !== 'login_required') {
             setError({
               type: ClientError.AUTH_ERROR,
-              message: reason
+              message: reason,
             });
             reject(errorData);
             return;
@@ -205,7 +206,7 @@ export function createOidcClient(): Client {
   const getOrLoadUser = createClientGetOrLoadUserFunction({
     getUser,
     isInitialized,
-    init
+    init,
   });
 
   const login: Client['login'] = () => {
@@ -236,10 +237,10 @@ export function createOidcClient(): Client {
           onAuthChange(true);
           resolve(oidcUserAsClientUser);
         })
-        .catch(e => {
+        .catch((e) => {
           setError({
             type: ClientError.AUTH_ERROR,
-            message: e && e.toString()
+            message: e && e.toString(),
           });
           onAuthChange(false);
           reject(e);
@@ -252,18 +253,18 @@ export function createOidcClient(): Client {
     new Promise((resolve, reject) => {
       manager
         .getUser()
-        .then(loadedUser => {
+        .then((loadedUser) => {
           const oidcUserAsClientUser = loadedUser
             ? oidcUserToClientUser(loadedUser)
             : undefined;
           setStoredUser(oidcUserAsClientUser);
           resolve(oidcUserAsClientUser as ClientUser);
         })
-        .catch(e => {
+        .catch((e) => {
           setStoredUser(undefined);
           setError({
             type: ClientError.LOAD_ERROR,
-            message: e && e.toString()
+            message: e && e.toString(),
           });
           reject(e);
         });
@@ -271,7 +272,7 @@ export function createOidcClient(): Client {
 
   const getUserProfile: Client['getUserProfile'] = () => getStoredUser();
 
-  const getApiAccessToken: Client['getApiAccessToken'] = async options => {
+  const getApiAccessToken: Client['getApiAccessToken'] = async (options) => {
     const user = getStoredUser();
     if (!user) {
       throw new Error('getApiAccessToken: no user with access token');
@@ -279,7 +280,7 @@ export function createOidcClient(): Client {
     return fetchApiToken({
       uri: getTokenUri(getClientConfig()),
       accessToken: user.access_token as string,
-      ...options
+      ...options,
     });
   };
 
@@ -289,7 +290,7 @@ export function createOidcClient(): Client {
     }
     clientFunctions.removeApiToken(audience);
     return getApiAccessToken({
-      audience
+      audience,
     });
   };
 
@@ -306,7 +307,7 @@ export function createOidcClient(): Client {
     return {
       accessToken: user.access_token,
       idToken: user.id_token,
-      refreshToken: user.refresh_token
+      refreshToken: user.refresh_token,
     };
   };
 
@@ -323,7 +324,7 @@ export function createOidcClient(): Client {
     onAuthChange,
     getApiAccessToken,
     getUserTokens,
-    ...clientFunctions
+    ...clientFunctions,
   };
   bindEvents(manager, { onAuthChange, eventTrigger, setError });
 
@@ -339,14 +340,14 @@ export function createOidcClient(): Client {
 
     return fetch(uri, {
       method: 'GET',
-      headers
+      headers,
     });
   };
 
   const userSessionValidityPoller = createHttpPoller({
     pollFunction: userInfoFetchFunction,
     shouldPoll: () => isAuthenticated(),
-    onError: returnedHttpStatus => {
+    onError: (returnedHttpStatus) => {
       if (
         isAuthenticated() &&
         returnedHttpStatus &&
@@ -357,7 +358,7 @@ export function createOidcClient(): Client {
         return { keepPolling: false };
       }
       return { keepPolling: isAuthenticated() };
-    }
+    },
   });
   clientFunctions.addListener(ClientEvent.AUTHORIZED, () => {
     userSessionValidityPoller.start();
@@ -365,7 +366,7 @@ export function createOidcClient(): Client {
   clientFunctions.addListener(ClientEvent.UNAUTHORIZED, () => {
     userSessionValidityPoller.stop();
   });
-  clientFunctions.addListener(ClientEvent.USER_CHANGED, user => {
+  clientFunctions.addListener(ClientEvent.USER_CHANGED, (user) => {
     if (isAuthenticated()) {
       // if not authenticated, user just logged in
       // and user is stored in callback handler
@@ -396,19 +397,19 @@ export const useOidcCallback = (): Client => {
   useEffect(() => {
     const initClient = async (): Promise<void> => {
       if (!clientFromRef.isInitialized()) {
-        await clientFromRef.handleCallback().catch(e =>
+        await clientFromRef.handleCallback().catch((e) =>
           clientFromRef.setError({
             type: ClientError.INIT_ERROR,
-            message: e && e.toString()
-          })
+            message: e && e.toString(),
+          }),
         );
       }
     };
     const statusListenerDisposer = clientFromRef.addListener(
       ClientEvent.STATUS_CHANGE,
-      status => {
+      (status) => {
         setStatus(status as ClientStatusId);
-      }
+      },
     );
 
     initClient();

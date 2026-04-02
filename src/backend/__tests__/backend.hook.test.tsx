@@ -9,11 +9,11 @@ import {
   getMockApiAccessTokensHookData,
   resetMockApiAccessTokensHookData,
   MockApiAccessTokensHookData,
-  resetAndSetMockApiAccessTokensHookData
+  resetAndSetMockApiAccessTokensHookData,
 } from '../../apiAccessTokens/__mocks__/useApiAccessTokens';
 import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 import initMockResponses, {
-  MockResponseProps
+  MockResponseProps,
 } from '../../tests/backend.test.helper';
 import { configureClient } from '../../client/__mocks__';
 
@@ -21,11 +21,11 @@ vi.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   configureClient();
   const backendUrl = 'https://localhost/';
   const validResponseData = {
-    pet_name: 'petName'
+    pet_name: 'petName',
   };
   const setRequestMockResponse = initMockResponses(fetchMock, backendUrl);
   let backendActions: BackendActions;
@@ -50,38 +50,38 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
     props: {
       apiTokenState?: MockApiAccessTokensHookData;
       backendResponseProps?: MockResponseProps;
-    } = {}
+    } = {},
   ): Promise<void> => {
     const { apiTokenState, backendResponseProps } = props;
     resetAndSetMockApiAccessTokensHookData(apiTokenState);
     setRequestMockResponse(
       backendResponseProps || {
-        responseData: validResponseData
-      }
+        responseData: validResponseData,
+      },
     );
 
     ({ unmount } = render(<TestWrapper />));
   };
 
   const updateApiAccessTokenMockStatus = async (
-    newStatus: FetchStatus
+    newStatus: FetchStatus,
   ): Promise<void> => {
     mockApiAccessTokensActions.status = newStatus;
     return waitFor(() => {
-      forceUpdate(old => old + 1);
+      forceUpdate((old) => old + 1);
       expect(backendActions.getApiTokenStatus()).toBe(newStatus);
     });
   };
 
   const waitForRequestUpdate = async (status: FetchStatus): Promise<void> =>
     waitFor(() => {
-      forceUpdate(old => old + 1);
+      forceUpdate((old) => old + 1);
       expect(backendActions.getRequestStatus()).toBe(status);
     });
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_BACKEND_URL: backendUrl
+      REACT_APP_BACKEND_URL: backendUrl,
     });
     fetchMock.enableMocks();
   });
@@ -112,7 +112,7 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
       await updateApiAccessTokenMockStatus('loaded');
       await waitForRequestUpdate('loaded');
       await waitFor(() =>
-        expect(backendActions.getData()).toEqual(validResponseData)
+        expect(backendActions.getData()).toEqual(validResponseData),
       );
     });
   });
@@ -124,11 +124,11 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
       await waitForRequestUpdate('error');
       fetchMock.resetMocks();
       setRequestMockResponse({
-        responseData: validResponseData
+        responseData: validResponseData,
       });
       backendActions.request();
       await waitFor(() =>
-        expect(backendActions.getData()).toEqual(validResponseData)
+        expect(backendActions.getData()).toEqual(validResponseData),
       );
     });
   });

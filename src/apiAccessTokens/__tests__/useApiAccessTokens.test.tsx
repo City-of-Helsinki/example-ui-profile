@@ -9,18 +9,18 @@ import {
   mockApiTokenResponse,
   logoutUser,
   clearApiTokens,
-  createApiTokenFetchPayload
+  createApiTokenFetchPayload,
 } from '../../tests/client.test.helper';
 import { AnyObject } from '../../common';
 import {
   useApiAccessTokens,
   ApiAccessTokenActions,
-  FetchStatus
+  FetchStatus,
 } from '../useApiAccessTokens';
 
 describe('useApiAccessTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/' });
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const config = configureClient();
@@ -100,7 +100,7 @@ describe('useApiAccessTokens hook ', () => {
       expect(apiTokenActions.getToken()).toBeUndefined();
       const tokens = mockApiTokenResponse({ audience: testAudience });
       apiTokenActions.fetch(
-        createApiTokenFetchPayload({ audience: testAudience })
+        createApiTokenFetchPayload({ audience: testAudience }),
       );
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
       expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
@@ -111,7 +111,7 @@ describe('useApiAccessTokens hook ', () => {
     await act(async () => {
       const tokens = mockApiTokenResponse({ audience: testAudience });
       await setUpTest({
-        user: {}
+        user: {},
       });
       await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
@@ -121,7 +121,7 @@ describe('useApiAccessTokens hook ', () => {
   it('api tokens are cleared when user logs out', async () => {
     await act(async () => {
       await setUpTest({
-        user: {}
+        user: {},
       });
       mockApiTokenResponse();
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));

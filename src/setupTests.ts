@@ -1,17 +1,18 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { GlobalWithFetchMock } from 'jest-fetch-mock';
 import { UserManager, UserManagerSettings } from 'oidc-client-ts';
 import {
   mockMutatorGetterOidc,
-  mockOidcUserManager
+  mockOidcUserManager,
 } from './client/__mocks__/oidc-react-mock';
 import { AnyFunction } from './common';
 
-const customGlobal: GlobalWithFetchMock = global as GlobalWithFetchMock;
+const customGlobal: GlobalWithFetchMock =
+  global as unknown as GlobalWithFetchMock;
 // jest-fetch-mock internally calls jest.fn(), alias vi as jest so it works with Vitest
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).jest = vi;
-// eslint-disable-next-line import/no-extraneous-dependencies
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 customGlobal.fetch = require('jest-fetch-mock');
 
 customGlobal.fetchMock = customGlobal.fetch;
@@ -21,8 +22,8 @@ vi.mock('react-router', async () => ({
   // @ts-ignore: expected ts type error
   ...(await vi.importActual('react-router')),
   useHistory: (): Record<string, AnyFunction> => ({
-    push: vi.fn()
-  })
+    push: vi.fn(),
+  }),
 }));
 
 vi.mock('./config', async () => {
@@ -43,7 +44,7 @@ vi.mock('oidc-client-ts', async () => {
   }
   return {
     ...actual,
-    UserManager: MockUserManagerClass
+    UserManager: MockUserManagerClass,
   };
 });
 

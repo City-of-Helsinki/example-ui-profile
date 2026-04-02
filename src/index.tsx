@@ -23,7 +23,7 @@ if (
 ) {
   Sentry.init({
     dsn: window._env_.REACT_APP_SENTRY_DSN,
-    environment: window._env_.REACT_APP_ENVIRONMENT
+    environment: window._env_.REACT_APP_ENVIRONMENT,
   });
 }
 

@@ -1,7 +1,7 @@
 import {
   ApolloClient,
   InMemoryCache,
-  NormalizedCacheObject
+  NormalizedCacheObject,
 } from '@apollo/client';
 import { FetchError } from '../client';
 
@@ -14,8 +14,8 @@ export function createGraphQLClient(uri: string, token: string): GraphQLClient {
     cache: new InMemoryCache(),
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Language': 'fi'
-    }
+      'Content-Language': 'fi',
+    },
   });
 }
 

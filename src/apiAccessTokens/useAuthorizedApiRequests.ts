@@ -18,7 +18,7 @@ export type AuthorizedRequestProps<P> = {
 };
 
 export type AuthorizedRequest<R, P> = (
-  fetchProps: AuthorizedRequestProps<P>
+  fetchProps: AuthorizedRequestProps<P>,
 ) => Promise<R | undefined>;
 
 export type AuthorizedApiActions<R, P> = {
@@ -28,7 +28,7 @@ export type AuthorizedApiActions<R, P> = {
   getApiTokenError: () => string | undefined;
   getRequestError: () => string | undefined;
   request: (
-    props?: Omit<RequestProps<P>, 'audience'>
+    props?: Omit<RequestProps<P>, 'audience'>,
   ) => Promise<R | undefined>;
   getData: () => R | undefined;
   clear: () => void;
@@ -36,14 +36,14 @@ export type AuthorizedApiActions<R, P> = {
 
 export default function useAuthorizedApiRequests<R, P>(
   authorizedRequest: AuthorizedRequest<R, P>,
-  props: Props<P>
+  props: Props<P>,
 ): AuthorizedApiActions<R, P> {
   const { autoFetchProps, audience } = props;
   const actions = useApiAccessTokens(audience);
   const {
     getStatus: getApiAccessTokenStatus,
     getErrorMessage: getApiTokenErrorMessage,
-    getToken
+    getToken,
   } = actions;
   const [requestStatus, setRequestStatus] = useState<FetchStatus>('waiting');
   const [result, setResult] = useState<R>();
@@ -52,7 +52,7 @@ export default function useAuthorizedApiRequests<R, P>(
 
   const resolveStatus = (
     apiAccessTokenStatus: FetchStatus,
-    reqStatus: FetchStatus
+    reqStatus: FetchStatus,
   ): FetchStatus => {
     if (apiAccessTokenStatus === 'loaded') {
       return 'ready';
@@ -81,13 +81,13 @@ export default function useAuthorizedApiRequests<R, P>(
   }
 
   const requestWrapper: AuthorizedApiActions<R, P>['request'] = useCallback(
-    async wrapperProps => {
+    async (wrapperProps) => {
       setRequestStatus('loading');
       const [err, data] = await to<R | undefined, Error>(
         authorizedRequest({
           ...wrapperProps,
-          token: getToken() as string
-        })
+          token: getToken() as string,
+        }),
       );
       if (err) {
         setRequestStatus('error');
@@ -100,7 +100,7 @@ export default function useAuthorizedApiRequests<R, P>(
       setError(undefined);
       return data as R;
     },
-    [authorizedRequest, getToken]
+    [authorizedRequest, getToken],
   );
 
   useEffect(() => {
@@ -136,12 +136,12 @@ export default function useAuthorizedApiRequests<R, P>(
       setResult(undefined);
       setError(undefined);
     },
-    request: requestProps => {
+    request: (requestProps) => {
       if (getApiAccessTokenStatus() !== 'loaded') {
         setError(new Error('Api tokens are not fetched.'));
         return Promise.resolve({} as R);
       }
       return requestWrapper(requestProps);
-    }
+    },
   };
 }

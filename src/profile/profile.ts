@@ -6,13 +6,13 @@ import {
   GraphQLClient,
   createGraphQLClient,
   GraphQLClientError,
-  resetClient
+  resetClient,
 } from '../graphql/graphqlClient';
 import { AnyObject } from '../common';
 
 import useAuthorizedApiRequests, {
   AuthorizedRequest,
-  AuthorizedApiActions
+  AuthorizedApiActions,
 } from '../apiAccessTokens/useAuthorizedApiRequests';
 import { getClientConfig } from '../client';
 
@@ -139,7 +139,7 @@ export function getProfileGqlClient(token?: string): GraphQLClient | undefined {
 }
 
 export function convertQueryToData(
-  queryResult: ProfileQueryResult
+  queryResult: ProfileQueryResult,
 ): ProfileData | undefined {
   const profile = queryResult && queryResult.data && queryResult.data.myProfile;
   if (!profile) {
@@ -156,35 +156,35 @@ export function convertQueryToData(
     lastName,
     nickname,
     language,
-    email: getEmail(profile)
+    email: getEmail(profile),
   };
 }
 
 export async function getProfileData(
-  token?: string
+  token?: string,
 ): Promise<ProfileQueryResult | GraphQLClientError> {
   const client = getProfileGqlClient(token);
   if (!client) {
     return {
       error: new Error(
-        'getProfileGqlClient returned undefined. Missing ApiToken for env.REACT_APP_<oidc provider>_PROFILE_API_TOKEN_AUDIENCE or missing env.REACT_APP_PROFILE_BACKEND_URL '
-      )
+        'getProfileGqlClient returned undefined. Missing ApiToken for env.REACT_APP_<oidc provider>_PROFILE_API_TOKEN_AUDIENCE or missing env.REACT_APP_PROFILE_BACKEND_URL ',
+      ),
     };
   }
   const [error, result]: [
     Error | ApolloError | null,
-    ProfileQueryResult | undefined
+    ProfileQueryResult | undefined,
   ] = await to(
     client.query({
       errorPolicy: 'all',
       query: MY_PROFILE_QUERY,
-      fetchPolicy: 'no-cache'
-    })
+      fetchPolicy: 'no-cache',
+    }),
   );
   if (error || !result) {
     return {
       error: error || undefined,
-      message: 'Query error'
+      message: 'Query error',
     };
   }
   const data = convertQueryToData(result);
@@ -192,7 +192,7 @@ export async function getProfileData(
     return {
       error: result.errors
         ? result.errors[0]
-        : new Error('Query result is missing data.myProfile')
+        : new Error('Query result is missing data.myProfile'),
     };
   }
   return result;
@@ -206,7 +206,7 @@ export async function clearGraphQlClient(): Promise<void> {
   return Promise.resolve();
 }
 
-const executeAPIAction: Request = async options => {
+const executeAPIAction: Request = async (options) => {
   const result = await getProfileData(options.token);
   const resultAsError = result as GraphQLClientError;
   if (resultAsError.error) {
@@ -218,10 +218,13 @@ const executeAPIAction: Request = async options => {
 };
 
 export function useProfileWithApiTokens(): ProfileActions {
-  const req: Request = useCallback(async props => executeAPIAction(props), []);
+  const req: Request = useCallback(
+    async (props) => executeAPIAction(props),
+    [],
+  );
   const config = getClientConfig();
   return useAuthorizedApiRequests(req, {
     audience: config.profileApiTokenAudience,
-    autoFetchProps: {}
+    autoFetchProps: {},
   });
 }

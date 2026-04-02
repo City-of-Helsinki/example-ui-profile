@@ -12,13 +12,13 @@ type GlobalWithPollerData = GlobalWithFetchMock & {
   mockApiAccessTokensHookData: MockApiAccessTokensHookData;
 };
 
-const globalWithApiAccessTokensHook = (global as unknown) as GlobalWithPollerData;
+const globalWithApiAccessTokensHook = global as unknown as GlobalWithPollerData;
 
 if (!globalWithApiAccessTokensHook.mockApiAccessTokensHookData) {
   globalWithApiAccessTokensHook.mockApiAccessTokensHookData = {
     apiTokens: undefined,
     error: undefined,
-    status: 'unauthorized'
+    status: 'unauthorized',
   };
 }
 const { mockApiAccessTokensHookData } = globalWithApiAccessTokensHook;
@@ -34,7 +34,7 @@ export function resetMockApiAccessTokensHookData(): void {
 }
 
 export function resetAndSetMockApiAccessTokensHookData(
-  data?: MockApiAccessTokensHookData
+  data?: MockApiAccessTokensHookData,
 ): void {
   resetMockApiAccessTokensHookData();
   Object.assign(mockApiAccessTokensHookData, data);
@@ -55,10 +55,10 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       }
       return undefined;
     },
-    fetch: options => Promise.resolve(options),
+    fetch: (options) => Promise.resolve(options),
     getToken: () =>
       mockApiAccessTokensHookData.apiTokens
         ? mockApiAccessTokensHookData.apiTokens[audience]
-        : undefined
+        : undefined,
   } as ApiAccessTokenActions;
 }

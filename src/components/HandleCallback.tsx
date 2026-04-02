@@ -6,7 +6,7 @@ import OidcCallback from '../client/OidcCallback';
 import { getClient } from '../client/oidc-react';
 
 const HandleCallback = (
-  props: React.PropsWithChildren<unknown>
+  props: React.PropsWithChildren<unknown>,
 ): React.ReactElement => {
   const location = useLocation();
   const client = getClient();

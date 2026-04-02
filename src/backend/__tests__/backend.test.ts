@@ -4,25 +4,25 @@ import { AnyFunction } from '../../common';
 import { executeAPIAction } from '../backend';
 import {
   getFetchMockLastCallAuthenticationHeader,
-  getFetchMockLastCall
+  getFetchMockLastCall,
 } from '../../tests/common.test.helper';
 import initMockResponses from '../../tests/backend.test.helper';
 
 describe('Backend.ts ', () => {
   let restoreEnv: AnyFunction;
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   const backendUrl = 'https://localhost/';
   const responseData = { pet_name: 'petName' };
   const usersAPiToken = 'valid-api-token';
   const setRequestMockResponse = initMockResponses(
     fetchMock,
     backendUrl,
-    responseData
+    responseData,
   );
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_BACKEND_URL: backendUrl
+      REACT_APP_BACKEND_URL: backendUrl,
     });
     fetchMock.enableMocks();
   });

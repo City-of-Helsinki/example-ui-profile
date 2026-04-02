@@ -4,16 +4,16 @@ import { FetchMock } from 'jest-fetch-mock';
 import { FetchStatus } from '../useApiAccessTokens';
 import useAuthorizedApiRequests, {
   AuthorizedApiActions,
-  AuthorizedRequest
+  AuthorizedRequest,
 } from '../useAuthorizedApiRequests';
 import initMockResponses, {
-  MockResponseProps
+  MockResponseProps,
 } from '../../tests/backend.test.helper';
 import {
   getMockApiAccessTokensHookData,
   resetMockApiAccessTokensHookData,
   MockApiAccessTokensHookData,
-  resetAndSetMockApiAccessTokensHookData
+  resetAndSetMockApiAccessTokensHookData,
 } from '../__mocks__/useApiAccessTokens';
 import { getFetchMockLastCallAuthenticationHeader } from '../../tests/common.test.helper';
 import { mockApiTokenResponse } from '../../tests/client.test.helper';
@@ -37,7 +37,7 @@ describe('useAuthorizedApiRequests hook ', () => {
   let autoFetch = false;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   const config = configureClient();
   const testAudience = config.profileApiTokenAudience;
   const noDataText = 'NO_DATA';
@@ -48,16 +48,16 @@ describe('useAuthorizedApiRequests hook ', () => {
   const setRequestMockResponse = initMockResponses(
     fetchMock,
     requestUrl,
-    responseData
+    responseData,
   );
   const validTokens = { [testAudience]: 'apiToken' };
 
-  const req: Request = async p => {
+  const req: Request = async (p) => {
     const headers = new Headers();
     headers.append('Authorization', `Bearer ${p.token}`);
     const fetchResponse = await fetch(requestUrl, {
       method: 'POST',
-      headers
+      headers,
     });
     requestTracker(p);
     return fetchResponse.json();
@@ -72,9 +72,9 @@ describe('useAuthorizedApiRequests hook ', () => {
       autoFetch
         ? {
             autoFetchProps: { data: { autoFetchProp: true } },
-            audience: testAudience
+            audience: testAudience,
           }
-        : { audience: testAudience }
+        : { audience: testAudience },
     );
     const data = authorizedApiActions.getData();
     const [, setNumber] = useState<number>(0);
@@ -97,14 +97,14 @@ describe('useAuthorizedApiRequests hook ', () => {
     props: {
       apiTokenState?: MockApiAccessTokensHookData;
       backendResponseProps?: MockResponseProps;
-    } = {}
+    } = {},
   ): Promise<void> => {
     const { apiTokenState, backendResponseProps } = props;
     resetAndSetMockApiAccessTokensHookData(apiTokenState);
     setRequestMockResponse(
       backendResponseProps || {
-        responseData
-      }
+        responseData,
+      },
     );
 
     ({ unmount } = render(<TestWrapper />));
@@ -127,7 +127,7 @@ describe('useAuthorizedApiRequests hook ', () => {
   };
 
   const updateApiAccessTokenMockStatus = async (
-    newStatus: FetchStatus
+    newStatus: FetchStatus,
   ): Promise<void> => {
     mockApiAccessTokensActions.status = newStatus;
     if (newStatus === 'loaded') {
@@ -136,14 +136,14 @@ describe('useAuthorizedApiRequests hook ', () => {
       mockApiAccessTokensActions.apiTokens = undefined;
     }
     return waitFor(() => {
-      forceUpdate(old => old + 1);
+      forceUpdate((old) => old + 1);
       expect(getApiTokenStatusFromDom()).toBe(newStatus);
     });
   };
 
   const waitForRequestUpdate = async (status: FetchStatus): Promise<void> =>
     waitFor(() => {
-      forceUpdate(old => old + 1);
+      forceUpdate((old) => old + 1);
       expect(getRequestStatusFromDom()).toBe(status);
     });
 
@@ -182,7 +182,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       expect(requestTracker).toHaveBeenCalledTimes(1);
       expect(requestTracker).toHaveBeenLastCalledWith({
         token: validTokens[testAudience],
-        ...autoFetchProp
+        ...autoFetchProp,
       });
     });
   });
@@ -200,9 +200,9 @@ describe('useAuthorizedApiRequests hook ', () => {
             expect(getRequestStatusFromDom()).not.toEqual('waiting');
             expect(requestTracker.mock.calls.length === 0).toBeFalsy();
           },
-          { timeout: 2000 }
+          { timeout: 2000 },
         );
-      } catch (e) {
+      } catch {
         waitForTimedOut = true;
       }
       expect(waitForTimedOut).toBeTruthy();
@@ -220,17 +220,17 @@ describe('useAuthorizedApiRequests hook ', () => {
       expect(requestTracker).toHaveBeenCalledTimes(1);
       expect(requestTracker).toHaveBeenLastCalledWith({
         token: validTokens[testAudience],
-        ...firstCallProps
+        ...firstCallProps,
       });
       authorizedApiActions.request();
       expect(authorizedApiActions.getRequestStatus()).toBe('loading');
       expect(authorizedApiActions.getData()).toEqual(responseData);
       await waitFor(() =>
-        expect(authorizedApiActions.getRequestStatus()).toBe('loaded')
+        expect(authorizedApiActions.getRequestStatus()).toBe('loaded'),
       );
       expect(requestTracker).toHaveBeenCalledTimes(2);
       expect(requestTracker).toHaveBeenLastCalledWith({
-        token: validTokens[testAudience]
+        token: validTokens[testAudience],
       });
     });
   });

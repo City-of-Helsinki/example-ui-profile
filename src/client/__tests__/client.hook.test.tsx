@@ -9,7 +9,7 @@ import {
   ClientValues,
   getClientDataFromComponent,
   matchClientDataWithComponent,
-  configureClient
+  configureClient,
 } from '../__mocks__';
 import { ClientProvider, ClientContext } from '../ClientProvider';
 import StoreProvider from '../redux/StoreProvider';
@@ -19,7 +19,7 @@ import { AnyFunction } from '../../common';
 
 const ClientDataRenderer = ({
   client,
-  id
+  id,
 }: {
   client: Client;
   id: string;
@@ -39,7 +39,7 @@ const ClientDataRenderer = ({
 
 const HookRenderer = ({
   callback,
-  id
+  id,
 }: InstanceIdentifier): React.ReactElement => {
   const client = useClient();
   callback({ id, client });
@@ -48,7 +48,7 @@ const HookRenderer = ({
 
 const ClientConsumer = ({
   callback,
-  id
+  id,
 }: InstanceIdentifier): React.ReactElement | null => (
   <ClientContext.Consumer>
     {(value): React.ReactElement | null => {
@@ -96,7 +96,7 @@ describe('Client consumers ', () => {
 
   const matchComponentWithClient = (
     selector: string,
-    client: Client
+    client: Client,
   ): ClientValues | undefined => matchClientDataWithComponent(selector, client);
 
   const getErrorText = (): string =>
@@ -113,13 +113,13 @@ describe('Client consumers ', () => {
       authenticated: nonHookClient.isAuthenticated(),
       initialized: nonHookClient.isInitialized(),
       error: errorObj ? errorObj.message : undefined,
-      email: clientEmail
+      email: clientEmail,
     });
   };
 
   const instances: Map<string, Client> = new Map();
   const instanceCount = 4;
-  const callback: AnyFunction = props => {
+  const callback: AnyFunction = (props) => {
     const { id, client } = props as InstanceIdentifier;
     if (!instances.has(id)) {
       instances.set(id, client as Client);
@@ -139,7 +139,7 @@ describe('Client consumers ', () => {
             <ReduxConsumer id="redux" />
           </div>
         </StoreProvider>
-      </ClientProvider>
+      </ClientProvider>,
     );
   };
   beforeAll(async () => {
@@ -163,7 +163,7 @@ describe('Client consumers ', () => {
     it('with same values', async () => {
       expect(instances.size).toBe(instanceCount);
       expect((instances.get('1') as Client).getStatus()).toBe(
-        ClientStatus.UNAUTHORIZED
+        ClientStatus.UNAUTHORIZED,
       );
       expect(instances.get('1') === instances.get('2')).toBe(true);
       expect(instances.get('2') === instances.get('3')).toBe(true);
@@ -178,7 +178,7 @@ describe('Client consumers ', () => {
       matchComponentWithClient(instance3Selector, instances.get('2') as Client);
       matchComponentWithClient('#instance_consumer', nonHookClient);
       const user = mockMutator.createValidUserData({
-        email: 'yougot@email.com'
+        email: 'yougot@email.com',
       });
       await act(async () => {
         mockMutator.setUser(user);
@@ -188,7 +188,7 @@ describe('Client consumers ', () => {
       const values = getComponentValues(instance1Selector) as ClientValues;
       expect(values && values.email).toBe(user.email);
       expect((instances.get('3') as Client).getStatus()).toBe(
-        ClientStatus.AUTHORIZED
+        ClientStatus.AUTHORIZED,
       );
       matchComponentWithClient(instance1Selector, instances.get('3') as Client);
       matchComponentWithClient(instance2Selector, instances.get('1') as Client);
@@ -201,7 +201,7 @@ describe('Client consumers ', () => {
       await act(async () => {
         nonHookClient.setError({
           type: ClientError.UNEXPECTED_AUTH_CHANGE,
-          message: ClientError.UNEXPECTED_AUTH_CHANGE
+          message: ClientError.UNEXPECTED_AUTH_CHANGE,
         });
       });
       expect(getErrorText()).toBe(ClientError.UNEXPECTED_AUTH_CHANGE);
@@ -212,7 +212,7 @@ describe('Client consumers ', () => {
       await act(async () => {
         nonHookClient.setError({
           type: ClientError.UNEXPECTED_AUTH_CHANGE,
-          message: ClientError.UNEXPECTED_AUTH_CHANGE
+          message: ClientError.UNEXPECTED_AUTH_CHANGE,
         });
         mockMutator.setUser(mockMutator.createValidUserData({ email }));
         nonHookClient.onAuthChange(true);

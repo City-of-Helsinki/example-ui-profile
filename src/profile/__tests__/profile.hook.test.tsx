@@ -9,24 +9,24 @@ import {
   clearApiTokens,
   mockApiTokenResponse,
   setEnv,
-  logoutUser
+  logoutUser,
 } from '../../tests/client.test.helper';
 import {
   ProfileData,
   ProfileActions,
-  useProfileWithApiTokens
+  useProfileWithApiTokens,
 } from '../profile';
 import {
   createValidProfileResponse,
   createInvalidProfileResponse,
-  mockProfileResponse
+  mockProfileResponse,
 } from '../../tests/profile.test.helper';
 import { AnyObject, AnyFunction } from '../../common';
 import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 
 describe('Profile.ts useProfileWithApiTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/', autoSignIn: true });
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const fetchMock = global.fetch as unknown as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const profileBackendUrl = 'https://localhost/profileGraphql/';
@@ -55,7 +55,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
 
   const setUpTest = async ({
     response,
-    returnApiTokenError
+    returnApiTokenError,
   }: {
     response: AnyObject;
     audience?: string;
@@ -63,12 +63,12 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     returnError?: boolean;
   }): Promise<void> => {
     mockApiTokenResponse({
-      returnError: returnApiTokenError
+      returnError: returnApiTokenError,
     });
 
     mockProfileResponse({
       response,
-      profileBackendUrl
+      profileBackendUrl,
     });
 
     ({ unmount } = render(<TestWrapper />));
@@ -76,7 +76,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
+      REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl,
     });
     fetchMock.enableMocks();
     await client.init();
@@ -113,17 +113,17 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   it('depends on apiAccessToken hook and changes with it', async () => {
     await act(async () => {
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
       await waitFor(() =>
-        expect(getApiAccessTokenStatus()).toBe('unauthorized')
+        expect(getApiAccessTokenStatus()).toBe('unauthorized'),
       );
       await setUser({});
       await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
       await waitFor(() => expect(getProfileStatus()).toBe('loading'));
       await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
       expect((profileActions.getData() as ProfileData).firstName).toEqual(
-        'firstName'
+        'firstName',
       );
     });
   });
@@ -131,19 +131,19 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   it('provides a "fetch"-action that requests data', async () => {
     await act(async () => {
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
       await setUser({});
       await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
       mockProfileResponse({
         response: createInvalidProfileResponse(),
-        profileBackendUrl
+        profileBackendUrl,
       });
       profileActions.request({});
       await waitFor(() => expect(getProfileStatus()).toBe('error'));
       mockProfileResponse({
         response: createValidProfileResponse(),
-        profileBackendUrl
+        profileBackendUrl,
       });
       profileActions.request({});
       await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
@@ -154,7 +154,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     await act(async () => {
       await setUser({});
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
 
       await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
@@ -170,7 +170,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     await act(async () => {
       await setUser({});
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
 
       await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));

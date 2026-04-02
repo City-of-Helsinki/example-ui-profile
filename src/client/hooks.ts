@@ -5,7 +5,7 @@ import {
   ClientEvent,
   ClientStatus,
   ClientStatusId,
-  ClientError
+  ClientError,
 } from '.';
 import { getClient } from './oidc-react';
 
@@ -16,19 +16,19 @@ export function useClient(): Client {
   useEffect(() => {
     const initClient = async (): Promise<void> => {
       if (!clientFromRef.isInitialized()) {
-        await clientFromRef.getOrLoadUser().catch(e => {
+        await clientFromRef.getOrLoadUser().catch((e) => {
           clientFromRef.setError({
             type: ClientError.INIT_ERROR,
-            message: e && e.toString()
+            message: e && e.toString(),
           });
         });
       }
     };
     const statusListenerDisposer = clientFromRef.addListener(
       ClientEvent.STATUS_CHANGE,
-      status => {
+      (status) => {
         setStatus(status as ClientStatusId);
-      }
+      },
     );
 
     initClient();
@@ -47,7 +47,7 @@ export function useClientErrorDetection(): ClientErrorObject {
     let isAuthorized = false;
     const statusListenerDisposer = clientFromRef.addListener(
       ClientEvent.STATUS_CHANGE,
-      status => {
+      (status) => {
         if (status === ClientStatus.AUTHORIZED) {
           isAuthorized = true;
         }
@@ -55,20 +55,20 @@ export function useClientErrorDetection(): ClientErrorObject {
           setError({ type: ClientError.UNEXPECTED_AUTH_CHANGE, message: '' });
           isAuthorized = false;
         }
-      }
+      },
     );
 
     const errorListenerDisposer = clientFromRef.addListener(
       ClientEvent.ERROR,
-      newError => {
+      (newError) => {
         setError(newError as ClientErrorObject);
-      }
+      },
     );
     const logoutListenerDisposer = clientFromRef.addListener(
       ClientEvent.LOGGING_OUT,
       (): void => {
         isAuthorized = false;
-      }
+      },
     );
 
     return (): void => {
@@ -88,21 +88,21 @@ export function useClientCallback(): Client {
     const initClient = async (): Promise<void> => {
       if (clientFromRef.isInitialized()) {
         throw new Error(
-          'Client already initialized. This should not happen with callback. When using callback, client should not be initialized more than once.'
+          'Client already initialized. This should not happen with callback. When using callback, client should not be initialized more than once.',
         );
       }
-      await clientFromRef.handleCallback().catch(e =>
+      await clientFromRef.handleCallback().catch((e) =>
         clientFromRef.setError({
           type: ClientError.INIT_ERROR,
-          message: e && e.toString()
-        })
+          message: e && e.toString(),
+        }),
       );
     };
     const statusListenerDisposer = clientFromRef.addListener(
       ClientEvent.STATUS_CHANGE,
-      status => {
+      (status) => {
         setStatus(status as ClientStatusId);
-      }
+      },
     );
 
     initClient();
