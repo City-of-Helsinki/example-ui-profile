@@ -107,7 +107,7 @@ const MY_PROFILE_QUERY = gql`
   }
 `;
 
-let profileGqlClient: GraphQLClient;
+let profileGqlClient: GraphQLClient | undefined;
 
 export type ProfileDataType = string | AnyObject | undefined;
 export type ProfileErrorType = Error | GraphQLClientError | string | undefined;
@@ -202,6 +202,7 @@ export async function clearGraphQlClient(): Promise<void> {
   const client = getProfileGqlClient();
   if (client) {
     await resetClient(client);
+    profileGqlClient = undefined;
   }
   return Promise.resolve();
 }
