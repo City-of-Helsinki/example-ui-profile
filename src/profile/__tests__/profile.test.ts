@@ -1,5 +1,6 @@
 import { FetchMock } from 'jest-fetch-mock';
 import {
+  clearGraphQlClient,
   convertQueryToData,
   getProfileData,
   getProfileGqlClient,
@@ -60,9 +61,10 @@ describe('Profile.ts', () => {
     fetchMock.disableMocks();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     fetchMock.resetMocks();
     mockMutator.resetMock();
+    await clearGraphQlClient();
   });
 
   beforeEach(() => {
@@ -89,6 +91,34 @@ describe('Profile.ts', () => {
     const token = setValidApiToken();
     const gqlclient = getProfileGqlClient(token);
     expect(gqlclient).toBeDefined();
+  });
+
+  it('getProfileGqlClient() returns the same client instance when called with the same token', () => {
+    const token = setValidApiToken();
+    const client1 = getProfileGqlClient(token);
+    const client2 = getProfileGqlClient(token);
+    expect(client1).toBe(client2);
+  });
+
+  it('getProfileGqlClient() creates a new client instance when the token changes', () => {
+    const token = setValidApiToken();
+    const client1 = getProfileGqlClient(token);
+    const client2 = getProfileGqlClient('new-token');
+    expect(client1).toBeDefined();
+    expect(client2).toBeDefined();
+    expect(client1).not.toBe(client2);
+  });
+
+  it('clearGraphQlClient() resets the cached client so a fresh one is created on next call', async () => {
+    const token = setValidApiToken();
+    const client1 = getProfileGqlClient(token);
+    expect(client1).toBeDefined();
+    await clearGraphQlClient();
+    const undefinedAfterClear = getProfileGqlClient();
+    expect(undefinedAfterClear).toBeUndefined();
+    const client2 = getProfileGqlClient(token);
+    expect(client2).toBeDefined();
+    expect(client1).not.toBe(client2);
   });
 
   it('getProfileData() returns FetchError or ProfileData', async () => {
