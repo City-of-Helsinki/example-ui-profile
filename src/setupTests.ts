@@ -1,21 +1,9 @@
-import { GlobalWithFetchMock } from 'jest-fetch-mock';
 import { UserManager, UserManagerSettings } from 'oidc-client-ts';
 import {
   mockMutatorGetterOidc,
   mockOidcUserManager,
 } from './client/__mocks__/oidc-react-mock';
 import { AnyFunction } from './common';
-
-const customGlobal: GlobalWithFetchMock =
-  global as unknown as GlobalWithFetchMock;
-// jest-fetch-mock internally calls jest.fn(), alias vi as jest so it works with Vitest
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(global as any).jest = vi;
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-customGlobal.fetch = require('jest-fetch-mock');
-
-customGlobal.fetchMock = customGlobal.fetch;
 
 vi.mock('react-router', async () => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment

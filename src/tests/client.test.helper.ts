@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import {
   Client,
   FetchApiTokenOptions,
@@ -11,8 +11,6 @@ import {
   requestDelayForStatusChangeDetectionInMs,
 } from '../client/__mocks__/index';
 import { AnyFunction, AnyObject } from '../common';
-
-type NodeJS = AnyObject;
 
 export const mockApiTokenResponse = (
   options: {
@@ -32,7 +30,7 @@ export const mockApiTokenResponse = (
     returnError,
     additionalTokenAudience,
   } = options;
-  const fetchMock = global.fetch as unknown as FetchMock;
+  const requestMock = fetchMock;
   const tokenKey =
     audience ||
     window._env_.REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE ||
@@ -52,7 +50,10 @@ export const mockApiTokenResponse = (
     getTokenUri({
       ...getClientConfig(),
     });
-  fetchMock.doMockOnceIf(endPointUri, (req) => {
+  requestMock.once(endPointUri, (callLog) => {
+    const req =
+      callLog.request ||
+      new Request(callLog.url, callLog.options as RequestInit);
     if (requestCallback) {
       requestCallback(req);
     }

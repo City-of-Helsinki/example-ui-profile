@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import {
   clearGraphQlClient,
   convertQueryToData,
@@ -26,7 +26,6 @@ import { GraphQLClientError } from '../../graphql/graphqlClient';
 
 describe('Profile.ts', () => {
   const config = configureClient();
-  const fetchMock = global.fetch as unknown as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   let restoreEnv: AnyFunction;
@@ -52,17 +51,17 @@ describe('Profile.ts', () => {
     restoreEnv = setEnv({
       REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl,
     });
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
     await client.init();
   });
 
   afterAll(() => {
     restoreEnv();
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
 
   afterEach(async () => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockMutator.resetMock();
     await clearGraphQlClient();
   });
@@ -135,7 +134,7 @@ describe('Profile.ts', () => {
     )) as GraphQLClientError;
     expect(serverErrorResponse.error).toBeDefined();
     // must reset before new call to same url
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockProfileResponse({
       requestCallback: (req: unknown): void => {
         lastRequest = req as Request;

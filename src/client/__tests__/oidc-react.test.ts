@@ -1,7 +1,7 @@
 import to from 'await-to-js';
 import { UserManager } from 'oidc-client-ts';
 import { waitFor } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 
 import {
   EventListeners,
@@ -135,14 +135,13 @@ describe('Oidc client ', () => {
     });
 
     beforeAll(async () => {
-      const fetchMock = global.fetch as unknown as FetchMock;
-      fetchMock.enableMocks();
+      fetchMock.mockGlobal();
     });
     afterAll(() => {
-      fetchMock.disableMocks();
+      fetchMock.unmockGlobal();
     });
     afterEach(() => {
-      fetchMock.resetMocks();
+      fetchMock.mockReset({ includeSticky: true });
     });
 
     it('and returns always same promise and can be called multiple times ', async () => {
@@ -167,7 +166,10 @@ describe('Oidc client ', () => {
         [clientConfig.exampleApiTokenAudience]: initialToken,
         [clientConfig.profileApiTokenAudience]: initialToken,
       });
-      fetchMock.doMock(async (req) => {
+      fetchMock.catch(async (callLog) => {
+        const req =
+          callLog.request ||
+          new Request(callLog.url, callLog.options as RequestInit);
         const urlParams = await req.text();
         const audience = new URLSearchParams(urlParams).get(
           'audience',
@@ -185,15 +187,10 @@ describe('Oidc client ', () => {
         );
       });
       await client.handleCallback();
-      expect(fetchMock).toHaveBeenCalledTimes(0);
-      expect(
-        (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.results,
-      ).toHaveLength(0);
+      expect(fetchMock.callHistory.calls()).toHaveLength(0);
       triggerEvent('userLoaded', mockMutator.createValidUserData());
       await waitFor(() => {
-        expect(
-          (fetchMock as unknown as ReturnType<typeof vi.fn>).mock.results,
-        ).toHaveLength(2);
+        expect(fetchMock.callHistory.calls()).toHaveLength(2);
         expect(client.getApiToken(clientConfig.exampleApiTokenAudience)).toBe(
           renewedToken,
         );
@@ -203,7 +200,7 @@ describe('Oidc client ', () => {
       });
       triggerEvent('userLoaded', mockMutator.createValidUserData());
       await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalledTimes(4);
+        expect(fetchMock.callHistory.calls()).toHaveLength(4);
       });
     });
     it('failure results in UNAUTHORIZED status', async () => {

@@ -1,5 +1,4 @@
 import type { Mock } from 'vitest';
-import { GlobalWithFetchMock } from 'jest-fetch-mock';
 import { HttpPoller, HttpPollerProps } from '../http-poller';
 
 type MockHttpPollerData = {
@@ -8,7 +7,7 @@ type MockHttpPollerData = {
   props?: HttpPollerProps;
 };
 
-type GlobalWithPollerData = GlobalWithFetchMock & {
+type GlobalWithPollerData = typeof globalThis & {
   mockHttpPoller: MockHttpPollerData;
 };
 

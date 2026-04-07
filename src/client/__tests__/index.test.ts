@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 
 import {
   ClientErrorObject,
@@ -19,7 +19,6 @@ import { AnyFunction, AnyObject } from '../../common';
 
 describe('Client factory ', () => {
   let client: ClientFactory;
-  const fetchMock = global.fetch as unknown as FetchMock;
   const config = configureClient();
   beforeEach(() => {
     client = createClient();
@@ -179,9 +178,10 @@ describe('Client factory ', () => {
     });
   });
   describe('fetchApiToken makes requests ', () => {
-    beforeAll(() => fetchMock.enableMocks());
-    afterAll(() => fetchMock.disableMocks());
-    afterEach(() => fetchMock.resetMocks());
+    beforeAll(() => fetchMock.mockGlobal());
+    afterAll(() => fetchMock.unmockGlobal());
+    afterEach(() => fetchMock.mockReset({ includeSticky: true }));
+    const apiTokenRouteName = apiTokenRouteName;
     const createOkResponse = (responseBody: string | AnyObject) => ({
       status: 200,
       body:
@@ -205,7 +205,10 @@ describe('Client factory ', () => {
     };
     let lastRequest: Request;
     it('where access token is added to headers and audience is in the body. GrantType and permission are not added to body, if not set', async () => {
-      fetchMock.mockIf(fetchConfig.uri, (req) => {
+      fetchMock.route(fetchConfig.uri, (callLog) => {
+        const req =
+          callLog.request ||
+          new Request(callLog.url, callLog.options as RequestInit);
         lastRequest = req;
         return Promise.resolve(apiTokenResponse);
       });
@@ -223,7 +226,10 @@ describe('Client factory ', () => {
       expect(requestData.get('grant_type')).toBeNull();
     });
     it('where grantType and permission are added to body, if set', async () => {
-      fetchMock.mockIf(fetchConfig.uri, (req) => {
+      fetchMock.route(fetchConfig.uri, (callLog) => {
+        const req =
+          callLog.request ||
+          new Request(callLog.url, callLog.options as RequestInit);
         lastRequest = req;
         return Promise.resolve(apiTokenResponse);
       });
@@ -236,9 +242,7 @@ describe('Client factory ', () => {
       expect(requestData.get('grant_type')).toBe(config.apiGrantType);
     });
     it('and data from server is returned to caller and stored to client', async () => {
-      fetchMock.mockIf(fetchConfig.uri, () =>
-        Promise.resolve(apiTokenResponse),
-      );
+      fetchMock.route(fetchConfig.uri, () => Promise.resolve(apiTokenResponse));
 
       const returnedData = await client.fetchApiToken(fetchConfig);
       const assumedTokenData = {
@@ -253,7 +257,7 @@ describe('Client factory ', () => {
         status: 400,
         body: 'an error',
       };
-      fetchMock.mockIf(fetchConfig.uri, () => Promise.resolve(responseData));
+      fetchMock.route(fetchConfig.uri, () => Promise.resolve(responseData));
       const response = (await client.fetchApiToken(fetchConfig)) as FetchError;
       expect(response.status).toBe(responseData.status);
       expect(response.error).toBeDefined();
@@ -263,7 +267,7 @@ describe('Client factory ', () => {
     });
     it('and network / cors error is handled', async () => {
       const responseData = new Error('network error');
-      fetchMock.mockIf(fetchConfig.uri, () => Promise.reject(responseData));
+      fetchMock.route(fetchConfig.uri, () => Promise.reject(responseData));
       const response = (await client.fetchApiToken(fetchConfig)) as FetchError;
       expect(response.error).toBeDefined();
       if (response.error) {
@@ -272,7 +276,7 @@ describe('Client factory ', () => {
     });
     it('and json parse error is handled', async () => {
       const responseData = createOkResponse('{a:invalidjson}');
-      fetchMock.mockIf(fetchConfig.uri, () => Promise.resolve(responseData));
+      fetchMock.route(fetchConfig.uri, () => Promise.resolve(responseData));
       const response = (await client.fetchApiToken(fetchConfig)) as FetchError;
       expect(response.error).toBeDefined();
       expect(response.message).toBeDefined();
@@ -285,8 +289,10 @@ describe('Client factory ', () => {
         [config.exampleApiTokenAudience]: 'exampleApiToken',
         [config.profileApiTokenAudience]: 'profileApiToken',
       };
-      fetchMock.mockIf(fetchConfig.uri, () =>
-        Promise.resolve(createOkResponse(responseBody)),
+      fetchMock.route(
+        fetchConfig.uri,
+        () => Promise.resolve(createOkResponse(responseBody)),
+        { name: apiTokenRouteName },
       );
 
       const exampleTokenConfig = {
@@ -303,7 +309,7 @@ describe('Client factory ', () => {
       expect(exampleApiTokens).toEqual(assumedTokenData);
       const storedData = client.getApiToken(exampleTokenConfig.audience);
       expect(storedData).toEqual(assumedTokenData[exampleTokenConfig.audience]);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.callHistory.calls()).toHaveLength(1);
       const profileTokenConfig = {
         ...fetchConfig,
         audience: config.profileApiTokenAudience,
@@ -314,14 +320,16 @@ describe('Client factory ', () => {
         [profileTokenConfig.audience]:
           responseBody[profileTokenConfig.audience],
       });
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.callHistory.calls()).toHaveLength(1);
     });
     it('Api tokens can also be an object with an "access_token" property. In this case there cannot be multiple tokens in the response.', async () => {
       const exampleApiTokenBody = {
         access_token: 'exampleApiToken',
       };
-      fetchMock.mockIf(fetchConfig.uri, () =>
-        Promise.resolve(createOkResponse(exampleApiTokenBody)),
+      fetchMock.route(
+        fetchConfig.uri,
+        () => Promise.resolve(createOkResponse(exampleApiTokenBody)),
+        { name: apiTokenRouteName },
       );
 
       const exampleTokenConfig = {
@@ -343,8 +351,11 @@ describe('Client factory ', () => {
       const profileApiTokenBody = {
         access_token: 'profileApiToken',
       };
-      fetchMock.mockIf(fetchConfig.uri, () =>
-        Promise.resolve(createOkResponse(profileApiTokenBody)),
+      fetchMock.removeRoute(apiTokenRouteName);
+      fetchMock.route(
+        fetchConfig.uri,
+        () => Promise.resolve(createOkResponse(profileApiTokenBody)),
+        { name: apiTokenRouteName },
       );
 
       const profileTokenConfig = {

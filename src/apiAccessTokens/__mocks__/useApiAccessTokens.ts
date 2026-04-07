@@ -1,4 +1,3 @@
-import { GlobalWithFetchMock } from 'jest-fetch-mock';
 import { ApiAccessTokenActions, FetchStatus } from '../useApiAccessTokens';
 import { JWTPayload } from '../../client';
 
@@ -8,7 +7,7 @@ export type MockApiAccessTokensHookData = {
   status: FetchStatus;
 };
 
-type GlobalWithPollerData = GlobalWithFetchMock & {
+type GlobalWithPollerData = typeof globalThis & {
   mockApiAccessTokensHookData: MockApiAccessTokensHookData;
 };
 

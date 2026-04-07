@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { AnyFunction, AnyObject } from '../common';
 import { ProfileData } from '../profile/profile';
 import { requestDelayForStatusChangeDetectionInMs } from '../client/__mocks__';
@@ -13,9 +13,12 @@ export const mockProfileResponse = (options: {
   delay?: number;
   requestCallback?: AnyFunction;
 }): void => {
-  const fetchMock = global.fetch as unknown as FetchMock;
+  const requestMock = fetchMock;
   const { response, delay, requestCallback, profileBackendUrl } = options;
-  fetchMock.doMockOnceIf(profileBackendUrl, (req) => {
+  requestMock.once(profileBackendUrl, (callLog) => {
+    const req =
+      callLog.request ||
+      new Request(callLog.url, callLog.options as RequestInit);
     if (requestCallback) {
       requestCallback(req);
     }

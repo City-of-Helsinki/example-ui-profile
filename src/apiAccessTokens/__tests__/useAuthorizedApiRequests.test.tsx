@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { render, waitFor, act } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { FetchStatus } from '../useApiAccessTokens';
 import useAuthorizedApiRequests, {
   AuthorizedApiActions,
@@ -37,7 +37,6 @@ describe('useAuthorizedApiRequests hook ', () => {
   let autoFetch = false;
   let forceUpdate: React.Dispatch<React.SetStateAction<number>>;
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock = global.fetch as unknown as FetchMock;
   const config = configureClient();
   const testAudience = config.profileApiTokenAudience;
   const noDataText = 'NO_DATA';
@@ -148,13 +147,13 @@ describe('useAuthorizedApiRequests hook ', () => {
     });
 
   beforeAll(async () => {
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
   });
   afterAll(() => {
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     autoFetch = false;
     resetMockApiAccessTokensHookData();
   });
@@ -244,7 +243,7 @@ describe('useAuthorizedApiRequests hook ', () => {
       await waitFor(() => expect(getRequestStatusFromDom()).toBe('error'));
       expect(authorizedApiActions.getRequestError()).toBeDefined();
 
-      fetchMock.resetMocks();
+      fetchMock.mockReset({ includeSticky: true });
       setRequestMockResponse();
       authorizedApiActions.request({});
       expect(authorizedApiActions.getRequestStatus()).toBe('loading');

@@ -1,4 +1,4 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { setEnv } from '../../tests/client.test.helper';
 import { AnyFunction } from '../../common';
 import { executeAPIAction } from '../backend';
@@ -10,7 +10,6 @@ import initMockResponses from '../../tests/backend.test.helper';
 
 describe('Backend.ts ', () => {
   let restoreEnv: AnyFunction;
-  const fetchMock = global.fetch as unknown as FetchMock;
   const backendUrl = 'https://localhost/';
   const responseData = { pet_name: 'petName' };
   const usersAPiToken = 'valid-api-token';
@@ -24,16 +23,16 @@ describe('Backend.ts ', () => {
     restoreEnv = setEnv({
       REACT_APP_BACKEND_URL: backendUrl,
     });
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
   });
 
   afterAll(() => {
     restoreEnv();
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
 
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
   });
 
   it('calling executeApiAction() adds apiToken to headers. Requests is sent to backend with method "GET" when data is not provided', async () => {

@@ -8,12 +8,14 @@
   },
   "dependencies": {
     "@apollo/client": "3.5.6",
+    "@fetch-mock/vitest": "0.2.18",
     "@sentry/browser": "^7.119.1",
     "@types/node": "^22.13.0",
     "@types/react": "17.0.2",
     "@types/react-dom": "17.0.2",
     "@types/react-redux": "^7.1.5",
     "@types/react-router-dom": "^5.1.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "await-to-js": "^3.0.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
@@ -28,7 +30,6 @@
     "hds-design-tokens": "1.5.1",
     "hds-react": "1.5.1",
     "http-status-typed": "^1.0.0",
-    "jest-fetch-mock": "3.0.3",
     "jwt-decode": "^3.1.2",
     "oidc-client-ts": "^3.5.0",
     "prettier": "^3.8.1",
@@ -40,8 +41,7 @@
     "redux": "^4.2.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.0",
-    "vite": "^8.0.3",
-    "@vitejs/plugin-react": "^6.0.1"
+    "vite": "^8.0.3"
   },
   "scripts": {
     "start": "yarn run update-runtime-env && vite",

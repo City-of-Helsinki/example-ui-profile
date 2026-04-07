@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { configureClient } from '../../client/__mocks__/index';
 import { getClient } from '../../client/oidc-react';
 import { mockMutatorGetterOidc } from '../../client/__mocks__/oidc-react-mock';
@@ -26,7 +26,6 @@ import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 
 describe('Profile.ts useProfileWithApiTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/', autoSignIn: true });
-  const fetchMock = global.fetch as unknown as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const profileBackendUrl = 'https://localhost/profileGraphql/';
@@ -78,17 +77,17 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     restoreEnv = setEnv({
       REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl,
     });
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
     await client.init();
   });
 
   afterAll(() => {
     restoreEnv();
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
 
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockMutator.resetMock();
   });
 

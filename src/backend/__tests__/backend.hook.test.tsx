@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { render, waitFor, act } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { setEnv } from '../../tests/client.test.helper';
 import { useBackendWithApiTokens, BackendActions } from '../backend';
 
@@ -21,7 +21,6 @@ vi.mock('../../apiAccessTokens/useApiAccessTokens');
 
 describe('backend.ts useBackendWithApiTokens hook ', () => {
   const mockApiAccessTokensActions = getMockApiAccessTokensHookData();
-  const fetchMock = global.fetch as unknown as FetchMock;
   configureClient();
   const backendUrl = 'https://localhost/';
   const validResponseData = {
@@ -83,16 +82,16 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
     restoreEnv = setEnv({
       REACT_APP_BACKEND_URL: backendUrl,
     });
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
   });
 
   afterAll(() => {
     restoreEnv();
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
 
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     resetMockApiAccessTokensHookData();
   });
 
@@ -122,7 +121,7 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
       await setUpTest({ backendResponseProps: { return401: true } });
       await updateApiAccessTokenMockStatus('loaded');
       await waitForRequestUpdate('error');
-      fetchMock.resetMocks();
+      fetchMock.mockReset({ includeSticky: true });
       setRequestMockResponse({
         responseData: validResponseData,
       });

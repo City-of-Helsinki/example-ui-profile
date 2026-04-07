@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { configureClient } from '../../client/__mocks__/index';
 import { getClient } from '../../client/oidc-react';
 import { mockMutatorGetterOidc } from '../../client/__mocks__/oidc-react-mock';
@@ -20,7 +20,6 @@ import {
 
 describe('useApiAccessTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/' });
-  const fetchMock = global.fetch as unknown as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const config = configureClient();
@@ -48,14 +47,14 @@ describe('useApiAccessTokens hook ', () => {
   };
 
   beforeAll(async () => {
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
     await client.init();
   });
   afterAll(() => {
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockMutator.resetMock();
   });
   beforeEach(() => {
