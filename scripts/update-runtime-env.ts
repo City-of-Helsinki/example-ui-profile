@@ -1,44 +1,49 @@
-#!/usr/bin/env ts-node-script
-
+import dotenv from 'dotenv';
 import * as path from 'path';
-import * as fs from 'fs';
-import * as util from 'util';
-import { config as dotenvConfig } from 'dotenv';
-import { expand as dotenvExpand } from 'dotenv-expand';
+import fs from 'fs';
+import util from 'util';
 
-const isTest = process.env.TEST === 'true';
-const nodeEnv = process.env.NODE_ENV || (isTest ? 'test' : 'development');
-process.env.NODE_ENV = nodeEnv;
+const USE_TEST_ENV = process.env.NODE_ENV === 'test';
+const defaultNodeEnv = USE_TEST_ENV ? 'test' : 'development';
 
-const configFile = isTest ? 'test-env-config.js' : 'env-config.js';
-const root = path.resolve(__dirname, '..');
+const env: Record<string, string | undefined> = {};
 
-// Load .env files in priority order (.env first, .env.{NODE_ENV} overrides)
-const envFiles = [path.join(root, '.env'), path.join(root, `.env.${nodeEnv}`)];
-for (const envFile of envFiles) {
-  if (fs.existsSync(envFile)) {
-    dotenvExpand(dotenvConfig({ path: envFile, override: true }));
-  }
-}
+env.NODE_ENV = process.env.NODE_ENV || defaultNodeEnv;
 
-// Collect NODE_ENV + REACT_APP_* vars
-const raw: Record<string, string | undefined> = { NODE_ENV: nodeEnv };
-Object.keys(process.env).forEach(key => {
-  if (key.startsWith('REACT_APP_')) {
-    raw[key] = process.env[key];
-  }
+dotenv.config({
+  processEnv: env,
+  ...(USE_TEST_ENV
+    ? { path: ['.env', '.env.test'] }
+    : { path: ['.env', `.env.${env.NODE_ENV}`, '.env.local'] }),
+  override: true,
 });
 
-const configurationFile = path.join(root, 'public', configFile);
+// Prevent collision if app is running while tests are started
+const configFile = USE_TEST_ENV ? 'test-env-config.js' : 'env-config.js';
 
-fs.writeFile(
-  configurationFile,
-  'window._env_ = ' + util.inspect(raw, false, 2, false),
-  err => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
-    }
-    console.log('File created!');
-  }
+const configurationFile: string = path.join(
+  __dirname,
+  '../public/' + configFile
 );
+
+const start = async () => {
+  try {
+    const envVariables = env;
+
+    fs.writeFile(
+      configurationFile,
+      'window._env_ = ' + util.inspect(envVariables, false, 2, false),
+      function(err) {
+        if (err) {
+          return console.error(err);
+        }
+        console.log('File created!');
+      }
+    );
+  } catch (err) {
+    console.error(err.message); // eslint-disable-line
+    process.exit(1);
+  }
+};
+
+start();
