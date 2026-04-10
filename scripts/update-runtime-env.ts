@@ -3,7 +3,7 @@ import * as path from 'path';
 import fs from 'fs';
 import util from 'util';
 
-const USE_TEST_ENV = process.env.NODE_ENV === 'test';
+const USE_TEST_ENV = process.env.TEST === 'true';
 const defaultNodeEnv = USE_TEST_ENV ? 'test' : 'development';
 
 const env: Record<string, string | undefined> = {};
