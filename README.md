@@ -134,7 +134,7 @@ This file can be sent to Sonar with Sonar Scanner (CLI). Report is /reports
 Generates variable object used when app is running. Generated object is stored at `public/env-config.js` and available
 as `window._env_` object.
 
-Generation uses `dotenv` and `dotenv-expand` to load values from environment variables or `.env` files.
+Generation uses `dotenv` to load values from environment variables or `.env` files.
 
 ## Logging in locally with Keycloak and using non-chromium browser
 
