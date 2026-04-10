@@ -6,11 +6,10 @@ import { ClientErrorObject, ClientError } from '../client';
 import styles from './styles.module.css';
 
 const ErrorPrompt = (
-  props: React.PropsWithChildren<unknown>
+  props: React.PropsWithChildren<unknown>,
 ): React.ReactElement | null => {
-  const [dismissedError, setDismissedError] = useState<ClientErrorObject>(
-    undefined
-  );
+  const [dismissedError, setDismissedError] =
+    useState<ClientErrorObject>(undefined);
   const newError = useClientErrorDetection();
   const client = useClient();
   const lastErrorType = dismissedError && dismissedError.type;

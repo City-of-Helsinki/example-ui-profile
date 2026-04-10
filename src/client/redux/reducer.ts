@@ -1,4 +1,3 @@
-/* eslint-disable no-case-declarations */
 import { Reducer } from 'redux';
 import { ClientEvent, ClientStatus, Client } from '../index';
 import { StoreState } from './index';
@@ -16,13 +15,13 @@ const reducer: Reducer = (state, action): StoreState => {
         user: undefined,
         status,
         authenticated,
-        initialized
+        initialized,
       };
     case ClientEvent.TOKEN_EXPIRED:
       return {
         ...state,
         user: undefined,
-        status: ClientStatus.UNAUTHORIZED
+        status: ClientStatus.UNAUTHORIZED,
       };
     case ClientEvent.ERROR:
       return { ...state, error: action.payload };
@@ -32,7 +31,7 @@ const reducer: Reducer = (state, action): StoreState => {
         user: undefined,
         status: ClientStatus.UNAUTHORIZED,
         initialized: true,
-        authenticated: false
+        authenticated: false,
       };
     case ClientEvent.AUTHORIZED:
       return {
@@ -40,13 +39,13 @@ const reducer: Reducer = (state, action): StoreState => {
         user: action.payload,
         status: ClientStatus.AUTHORIZED,
         initialized: true,
-        authenticated: true
+        authenticated: true,
       };
     case ClientEvent.INITIALIZING:
       return {
         ...state,
         status: ClientStatus.INITIALIZING,
-        initialized: false
+        initialized: false,
       };
     default:
       return state;

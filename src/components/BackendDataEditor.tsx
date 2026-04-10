@@ -10,7 +10,7 @@ const BackendDataEditor = (): React.ReactElement => {
     getData,
     request,
     getApiTokenError,
-    getRequestError
+    getRequestError,
   } = useBackendWithApiTokens();
 
   const apiTokenStatus = getApiTokenStatus();
@@ -53,7 +53,7 @@ const BackendDataEditor = (): React.ReactElement => {
       <h3>Backend data</h3>
       <form
         className={styles['pet-name-form']}
-        onSubmit={e => {
+        onSubmit={(e) => {
           e.preventDefault();
           save();
         }}>
@@ -66,7 +66,7 @@ const BackendDataEditor = (): React.ReactElement => {
           id="petName"
           type="text"
           value={newPetName || ''}
-          onChange={e => setNewPetName(e.currentTarget.value)}
+          onChange={(e) => setNewPetName(e.currentTarget.value)}
         />
         <Button onClick={() => save()}>Tallenna</Button>
         {requestStatus === 'loading' && <p>Tallennetaan...</p>}

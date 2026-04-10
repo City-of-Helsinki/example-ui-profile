@@ -1,13 +1,13 @@
 import to from 'await-to-js';
-import { UserManager } from 'oidc-client';
+import { UserManager } from 'oidc-client-ts';
 import { waitFor } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 
 import {
   EventListeners,
   configureClient,
   createEventListeners,
-  ListenerSetter
+  ListenerSetter,
 } from '../__mocks__';
 import {
   ClientStatus,
@@ -15,7 +15,7 @@ import {
   ClientEvent,
   ClientError,
   ClientErrorObject,
-  setClientConfig
+  setClientConfig,
 } from '../index';
 import { createOidcClient } from '../oidc-react';
 import { mockMutatorGetterOidc } from '../__mocks__/oidc-react-mock';
@@ -36,16 +36,18 @@ describe('Oidc client ', () => {
   }
 
   function triggerEvent(type: string, payload?: unknown): void {
-    ((instance.events as unknown) as {
-      trigger: (a?: unknown, b?: unknown) => void;
-    }).trigger(type, payload);
+    (
+      instance.events as unknown as {
+        trigger: (a?: unknown, b?: unknown) => void;
+      }
+    ).trigger(type, payload);
   }
 
   function initTests(): void {
     mockMutator.resetMock();
     client = createNewClient();
     eventListeners = createEventListeners(
-      (client.addListener as unknown) as ListenerSetter
+      client.addListener as unknown as ListenerSetter,
     );
     instance = mockMutator.getInstance();
   }
@@ -70,17 +72,17 @@ describe('Oidc client ', () => {
           client.onAuthChange(true);
           expect(client.getStatus()).toBe(ClientStatus.AUTHORIZED);
           expect(eventListeners.getCallCount(ClientEvent.AUTHORIZED)).toBe(
-            index + 1
+            index + 1,
           );
           expect(eventListeners.getCallCount(ClientEvent.UNAUTHORIZED)).toBe(
-            index
+            index,
           );
           triggerEvent(eventType);
           expect(client.getStatus()).toBe(ClientStatus.UNAUTHORIZED);
           expect(eventListeners.getCallCount(ClientEvent.UNAUTHORIZED)).toBe(
-            index + 1
+            index + 1,
           );
-        }
+        },
       );
     });
     it('SilentRenewError triggers an error of type AUTH_REFRESH_ERROR', async () => {
@@ -89,7 +91,7 @@ describe('Oidc client ', () => {
       triggerEvent('silentRenewError', error);
       expect(eventListeners.getCallCount(ClientEvent.ERROR)).toBe(1);
       const errorPayload: AnyObject = eventListeners.getLastCallPayload(
-        ClientEvent.ERROR
+        ClientEvent.ERROR,
       ) as AnyObject;
       expect(errorPayload).toBeDefined();
       if (errorPayload) {
@@ -112,15 +114,15 @@ describe('Oidc client ', () => {
       await to(client.init());
       const validUserData = {
         profile: {
-          ...mockMutator.getTokenParsed()
+          ...mockMutator.getTokenParsed(),
         },
-        access_token: 'new_token_for_USER_CHANGED'
+        access_token: 'new_token_for_USER_CHANGED',
       };
       expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(0);
       triggerEvent('userLoaded', validUserData);
       expect(eventListeners.getCallCount(ClientEvent.USER_CHANGED)).toBe(1);
       expect((client.getUserTokens() as AnyObject).accessToken).toBe(
-        validUserData.access_token
+        validUserData.access_token,
       );
     });
   });
@@ -133,14 +135,13 @@ describe('Oidc client ', () => {
     });
 
     beforeAll(async () => {
-      const fetchMock = (global.fetch as unknown) as FetchMock;
-      fetchMock.enableMocks();
+      fetchMock.mockGlobal();
     });
     afterAll(() => {
-      fetchMock.disableMocks();
+      fetchMock.unmockGlobal();
     });
     afterEach(() => {
-      fetchMock.resetMocks();
+      fetchMock.mockReset({ includeSticky: true });
     });
 
     it('and returns always same promise and can be called multiple times ', async () => {
@@ -163,41 +164,43 @@ describe('Oidc client ', () => {
       const renewedToken = 'initialToken';
       client.addApiTokens({
         [clientConfig.exampleApiTokenAudience]: initialToken,
-        [clientConfig.profileApiTokenAudience]: initialToken
+        [clientConfig.profileApiTokenAudience]: initialToken,
       });
-      fetchMock.doMock(async req => {
+      fetchMock.catch(async (callLog) => {
+        const req =
+          callLog.request ||
+          new Request(callLog.url, callLog.options as RequestInit);
         const urlParams = await req.text();
         const audience = new URLSearchParams(urlParams).get(
-          'audience'
+          'audience',
         ) as string;
-        return new Promise(resolve =>
+        return new Promise((resolve) =>
           setTimeout(async () => {
             resolve({
               status: 200,
               body: JSON.stringify({
-                [audience]: renewedToken
-              })
+                [audience]: renewedToken,
+              }),
             });
             // eslint-disable-next-line no-magic-numbers
-          }, 20)
+          }, 20),
         );
       });
       await client.handleCallback();
-      expect(fetchMock).toHaveBeenCalledTimes(0);
-      expect(fetchMock.mock.results).toHaveLength(0);
+      expect(fetchMock.callHistory.calls()).toHaveLength(0);
       triggerEvent('userLoaded', mockMutator.createValidUserData());
       await waitFor(() => {
-        expect(fetchMock.mock.results).toHaveLength(2);
+        expect(fetchMock.callHistory.calls()).toHaveLength(2);
         expect(client.getApiToken(clientConfig.exampleApiTokenAudience)).toBe(
-          renewedToken
+          renewedToken,
         );
         expect(client.getApiToken(clientConfig.profileApiTokenAudience)).toBe(
-          renewedToken
+          renewedToken,
         );
       });
       triggerEvent('userLoaded', mockMutator.createValidUserData());
       await waitFor(() => {
-        expect(fetchMock).toHaveBeenCalledTimes(4);
+        expect(fetchMock.callHistory.calls()).toHaveLength(4);
       });
     });
     it('failure results in UNAUTHORIZED status', async () => {
@@ -206,9 +209,9 @@ describe('Oidc client ', () => {
       await to(client.handleCallback());
       expect(client.getStatus()).toBe(ClientStatus.UNAUTHORIZED);
       expect(eventListeners.getCallCount(ClientEvent.ERROR)).toBe(1);
-      const error: ClientErrorObject = (eventListeners.getLastCallPayload(
-        ClientEvent.ERROR
-      ) as unknown) as ClientErrorObject;
+      const error: ClientErrorObject = eventListeners.getLastCallPayload(
+        ClientEvent.ERROR,
+      ) as ClientErrorObject;
       expect(error).toBeDefined();
       if (error) {
         expect(error.type).toBe(ClientError.AUTH_ERROR);
@@ -228,7 +231,7 @@ describe('Oidc client ', () => {
       const email = 'autoSignIn@test.com';
       mockMutator.setLoadProfilePayload(
         mockMutator.createValidUserData({ email }),
-        undefined
+        undefined,
       );
       await to(client.init());
       // note: checking getInitCallCount() === 0 right after client.init() may be confusing
@@ -250,7 +253,7 @@ describe('Oidc client ', () => {
       expect(client.getStatus()).toBe(ClientStatus.NONE);
       mockMutator.setLoadProfilePayload(
         undefined,
-        new Error('profile load failed')
+        new Error('profile load failed'),
       );
       await to(client.init());
       expect(client.getStatus()).toBe(ClientStatus.UNAUTHORIZED);

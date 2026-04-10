@@ -28,11 +28,11 @@ export type Client = {
   getUserProfile: () => User | undefined;
   addListener: (
     eventType: ClientEventId,
-    listener: EventListener
+    listener: EventListener,
   ) => () => void;
   onAuthChange: (authenticated: boolean) => boolean;
   getApiAccessToken: (
-    options: FetchApiTokenOptions
+    options: FetchApiTokenOptions,
   ) => Promise<JWTPayload | FetchError>;
   getApiToken: (audience: string) => string | undefined;
   addApiTokens: (newToken: JWTPayload) => JWTPayload;
@@ -44,10 +44,10 @@ export const ClientStatus = {
   NONE: 'NONE',
   INITIALIZING: 'INITIALIZING',
   AUTHORIZED: 'AUTHORIZED',
-  UNAUTHORIZED: 'UNAUTHORIZED'
+  UNAUTHORIZED: 'UNAUTHORIZED',
 } as const;
 
-export type ClientStatusId = typeof ClientStatus[keyof typeof ClientStatus];
+export type ClientStatusId = (typeof ClientStatus)[keyof typeof ClientStatus];
 
 export type FetchApiTokenOptions = {
   audience: string;
@@ -72,10 +72,10 @@ export const ClientEvent = {
   AUTHORIZATION_TERMINATED: 'AUTHORIZATION_TERMINATED',
   LOGGING_OUT: 'LOGGING_OUT',
   USER_CHANGED: 'USER_CHANGED',
-  ...ClientStatus
+  ...ClientStatus,
 } as const;
 
-export type ClientEventId = typeof ClientEvent[keyof typeof ClientEvent];
+export type ClientEventId = (typeof ClientEvent)[keyof typeof ClientEvent];
 
 export const ClientError = {
   INIT_ERROR: 'INIT_ERROR',
@@ -83,7 +83,7 @@ export const ClientError = {
   AUTH_REFRESH_ERROR: 'AUTH_REFRESH_ERROR',
   LOAD_ERROR: 'LOAD_ERROR',
   UNEXPECTED_AUTH_CHANGE: 'UNEXPECTED_AUTH_CHANGE',
-  USER_DATA_ERROR: 'USER_DATA_ERROR'
+  USER_DATA_ERROR: 'USER_DATA_ERROR',
 } as const;
 
 export type ClientErrorObject = { type: string; message: string } | undefined;
@@ -186,7 +186,7 @@ export type ClientFactory = {
   isInitialized: Client['isInitialized'];
   isAuthenticated: Client['isAuthenticated'];
   fetchApiToken: (
-    options: FetchApiTokenConfiguration
+    options: FetchApiTokenConfiguration,
   ) => Promise<JWTPayload | FetchError>;
   getApiToken: Client['getApiToken'];
   addApiTokens: Client['addApiTokens'];
@@ -196,7 +196,7 @@ export type ClientFactory = {
 export function createEventHandling(): EventHandlers {
   const listeners: Map<ClientEventId, Set<EventListener>> = new Map();
   const getListenerListForEventType = (
-    eventType: ClientEventId
+    eventType: ClientEventId,
   ): Set<EventListener> => {
     if (!listeners.has(eventType)) {
       listeners.set(eventType, new Set());
@@ -216,16 +216,16 @@ export function createEventHandling(): EventHandlers {
   };
   const eventTrigger = (
     eventType: ClientEventId,
-    payload?: EventPayload
+    payload?: EventPayload,
   ): void => {
     const source = listeners.get(eventType);
     if (source && source.size) {
-      source.forEach(listener => listener(payload));
+      source.forEach((listener) => listener(payload));
     }
   };
   return {
     addListener,
-    eventTrigger
+    eventTrigger,
   };
 }
 
@@ -252,7 +252,7 @@ export function createClient(): ClientFactory {
   const isInitialized: Client['isInitialized'] = () =>
     status === ClientStatus.AUTHORIZED || status === ClientStatus.UNAUTHORIZED;
 
-  const setError: Client['setError'] = newError => {
+  const setError: Client['setError'] = (newError) => {
     const oldType = error && error.type;
     const newType = newError && newError.type;
     if (oldType === newType) {
@@ -263,7 +263,7 @@ export function createClient(): ClientFactory {
     return true;
   };
 
-  const setStatus: Client['setStatus'] = newStatus => {
+  const setStatus: Client['setStatus'] = (newStatus) => {
     if (newStatus === status) {
       return false;
     }
@@ -272,22 +272,22 @@ export function createClient(): ClientFactory {
     return true;
   };
 
-  const getApiToken: ClientFactory['getApiToken'] = audience =>
+  const getApiToken: ClientFactory['getApiToken'] = (audience) =>
     tokenStorage[audience];
 
-  const addApiTokens: ClientFactory['addApiTokens'] = newToken => {
+  const addApiTokens: ClientFactory['addApiTokens'] = (newToken) => {
     Object.assign(tokenStorage, newToken);
     return tokenStorage;
   };
 
-  const removeApiToken: ClientFactory['removeApiToken'] = audience => {
+  const removeApiToken: ClientFactory['removeApiToken'] = (audience) => {
     delete tokenStorage[audience];
     return tokenStorage;
   };
 
   const saveReturnedApiTokens = (
     tokenData: JWTPayload,
-    audience: string
+    audience: string,
   ): JWTPayload => {
     const isSingleTokenResponse = !!tokenData['access_token'];
     const storageValue = isSingleTokenResponse
@@ -297,7 +297,7 @@ export function createClient(): ClientFactory {
     const storageData = { [audience]: storageValue } as JWTPayload;
     addApiTokens(storageData);
     if (!isSingleTokenResponse) {
-      Object.keys(tokenData).forEach(currentKey => {
+      Object.keys(tokenData).forEach((currentKey) => {
         if (currentKey === audience) {
           return;
         }
@@ -310,7 +310,7 @@ export function createClient(): ClientFactory {
     return storageData;
   };
 
-  const fetchApiToken: ClientFactory['fetchApiToken'] = async options => {
+  const fetchApiToken: ClientFactory['fetchApiToken'] = async (options) => {
     const currentToken = getApiToken(options.audience);
     if (currentToken) {
       return Promise.resolve({ [options.audience]: currentToken });
@@ -331,31 +331,29 @@ export function createClient(): ClientFactory {
     const requestOptions = {
       method: 'POST',
       headers: myHeaders,
-      body: urlencoded
+      body: urlencoded,
     };
 
-    const [fetchError, fetchResponse]: [
-      Error | null,
-      Response | undefined
-    ] = await to(fetch(options.uri, requestOptions));
+    const [fetchError, fetchResponse]: [Error | null, Response | undefined] =
+      await to(fetch(options.uri, requestOptions));
     if (fetchError || !fetchResponse) {
       return {
         error: fetchError,
-        message: 'Network or CORS error occured'
+        message: 'Network or CORS error occured',
       } as FetchError;
     }
     if (!fetchResponse.ok) {
       return {
         status: fetchResponse.status,
         message: fetchResponse.statusText,
-        error: new Error(await fetchResponse.text())
+        error: new Error(await fetchResponse.text()),
       } as FetchError;
     }
     const [parseError, json] = await to(fetchResponse.json());
     if (parseError) {
       return {
         error: parseError,
-        message: 'Returned data is not valid json'
+        message: 'Returned data is not valid json',
       } as FetchError;
     }
     return saveReturnedApiTokens(json, options.audience);
@@ -375,7 +373,7 @@ export function createClient(): ClientFactory {
     fetchApiToken,
     getApiToken,
     addApiTokens,
-    removeApiToken
+    removeApiToken,
   };
 }
 
@@ -395,7 +393,7 @@ export function hasValidClientConfig(): boolean {
 }
 
 export function getLocationBasedUri(
-  property: string | undefined
+  property: string | undefined,
 ): string | undefined {
   const location = window.location.origin;
   if (property === undefined) {
@@ -414,7 +412,7 @@ export function getTokenUri(clientConfig: ClientConfig): string {
 export function createClientGetOrLoadUserFunction({
   getUser,
   isInitialized,
-  init
+  init,
 }: Pick<Client, 'getUser' | 'isInitialized' | 'init'>): () => Promise<
   User | undefined | null
 > {
@@ -429,7 +427,7 @@ export function createClientGetOrLoadUserFunction({
     return new Promise((resolve, reject) => {
       init()
         .then(() => resolve(getUser()))
-        .catch(e => reject(e));
+        .catch((e) => reject(e));
     });
   };
 }

@@ -1,8 +1,6 @@
 import React from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import { render, waitFor, act } from '@testing-library/react';
+import fetchMock from '@fetch-mock/vitest';
 import { configureClient } from '../../client/__mocks__/index';
 import { getClient } from '../../client/oidc-react';
 import { mockMutatorGetterOidc } from '../../client/__mocks__/oidc-react-mock';
@@ -11,24 +9,23 @@ import {
   mockApiTokenResponse,
   logoutUser,
   clearApiTokens,
-  createApiTokenFetchPayload
+  createApiTokenFetchPayload,
 } from '../../tests/client.test.helper';
 import { AnyObject } from '../../common';
 import {
   useApiAccessTokens,
   ApiAccessTokenActions,
-  FetchStatus
+  FetchStatus,
 } from '../useApiAccessTokens';
 
 describe('useApiAccessTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/' });
-  const fetchMock = (global.fetch as unknown) as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const config = configureClient();
   const testAudience = config.profileApiTokenAudience;
   let apiTokenActions: ApiAccessTokenActions;
-  let dom: ReactWrapper;
+  let unmount: () => void;
 
   const HookTester = (): React.ReactElement => {
     apiTokenActions = useApiAccessTokens(testAudience);
@@ -46,33 +43,30 @@ describe('useApiAccessTokens hook ', () => {
     if (user) {
       await setUser(user);
     }
-    dom = mount(<HookTester />);
+    ({ unmount } = render(<HookTester />));
   };
 
   beforeAll(async () => {
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
     await client.init();
   });
   afterAll(() => {
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockMutator.resetMock();
   });
   beforeEach(() => {
-    if (dom) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
     logoutUser(client);
     clearApiTokens(client);
   });
 
   const getApiTokenStatus = (): FetchStatus | undefined => {
-    const text = dom
-      .find('#api-token-status')
-      .at(0)
-      .text();
+    const text = document.getElementById('api-token-status')?.textContent;
     return text ? (text as FetchStatus) : undefined;
   };
 
@@ -105,7 +99,7 @@ describe('useApiAccessTokens hook ', () => {
       expect(apiTokenActions.getToken()).toBeUndefined();
       const tokens = mockApiTokenResponse({ audience: testAudience });
       apiTokenActions.fetch(
-        createApiTokenFetchPayload({ audience: testAudience })
+        createApiTokenFetchPayload({ audience: testAudience }),
       );
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
       expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
@@ -116,7 +110,7 @@ describe('useApiAccessTokens hook ', () => {
     await act(async () => {
       const tokens = mockApiTokenResponse({ audience: testAudience });
       await setUpTest({
-        user: {}
+        user: {},
       });
       await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
@@ -126,7 +120,7 @@ describe('useApiAccessTokens hook ', () => {
   it('api tokens are cleared when user logs out', async () => {
     await act(async () => {
       await setUpTest({
-        user: {}
+        user: {},
       });
       mockApiTokenResponse();
       await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));

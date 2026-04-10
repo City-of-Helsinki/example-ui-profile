@@ -6,14 +6,14 @@ import {
   configureClient,
   EventListeners,
   createEventListeners,
-  ListenerSetter
+  ListenerSetter,
 } from '../__mocks__';
 import {
   ClientStatus,
   Client,
   ClientEvent,
   ClientErrorObject,
-  ClientError
+  ClientError,
 } from '../index';
 import { createOidcClient } from '../oidc-react';
 import { mockMutatorGetterOidc } from '../__mocks__/oidc-react-mock';
@@ -34,7 +34,7 @@ describe(`Client`, () => {
       mockMutator.resetMock();
       client = createNewClient();
       eventListeners = createEventListeners(
-        (client.addListener as unknown) as ListenerSetter
+        client.addListener as unknown as ListenerSetter,
       );
     });
     afterEach(() => {
@@ -65,9 +65,9 @@ describe(`Client`, () => {
       expect(client.getStatus()).toBe(ClientStatus.UNAUTHORIZED);
 
       expect(eventListeners.getCallCount(ClientEvent.ERROR)).toBe(1);
-      const error: ClientErrorObject = (eventListeners.getLastCallPayload(
-        ClientEvent.ERROR
-      ) as unknown) as ClientErrorObject;
+      const error: ClientErrorObject = eventListeners.getLastCallPayload(
+        ClientEvent.ERROR,
+      ) as ClientErrorObject;
       expect(error).toBeDefined();
       if (error) {
         expect(error.type).toBe(ClientError.AUTH_ERROR);
@@ -84,7 +84,7 @@ describe(`Client`, () => {
       mockMutator.resetMock();
       client = createNewClient();
       eventListeners = createEventListeners(
-        (client.addListener as unknown) as ListenerSetter
+        client.addListener as unknown as ListenerSetter,
       );
     });
     afterEach(() => {
@@ -100,7 +100,7 @@ describe(`Client`, () => {
       await to(client.init());
       expect(client.getStatus()).toBe(ClientStatus.AUTHORIZED);
       expect(eventListeners.getCallCount(ClientEvent.STATUS_CHANGE)).toBe(
-        statusChangeCountAfterAuthorized
+        statusChangeCountAfterAuthorized,
       );
       expect(eventListeners.getCallCount(ClientEvent.AUTHORIZED)).toBe(1);
       expect(eventListeners.getCallCount(ClientEvent.UNAUTHORIZED)).toBe(0);
@@ -109,11 +109,11 @@ describe(`Client`, () => {
       expect(eventListeners.getCallCount(ClientEvent.AUTHORIZED)).toBe(1);
       expect(eventListeners.getCallCount(ClientEvent.UNAUTHORIZED)).toBe(1);
       expect(eventListeners.getCallCount(ClientEvent.STATUS_CHANGE)).toBe(
-        statusChangeCountAfterUnAuthorized
+        statusChangeCountAfterUnAuthorized,
       );
       // user data is event payload in ClientEvent.AUTHORIZED
       const userData = eventListeners.getLastCallPayload(
-        ClientEvent.AUTHORIZED
+        ClientEvent.AUTHORIZED,
       );
       expect(userData && (userData as AnyObject).email).toBe(email);
     });
@@ -148,7 +148,7 @@ describe(`Client`, () => {
     beforeEach(() => {
       client = createNewClient();
       eventListeners = createEventListeners(
-        (client.addListener as unknown) as ListenerSetter
+        client.addListener as unknown as ListenerSetter,
       );
     });
     afterEach(() => {
@@ -157,7 +157,7 @@ describe(`Client`, () => {
     const tokens = {
       token: 'token',
       idToken: 'idToken',
-      refreshToken: 'refreshToken'
+      refreshToken: 'refreshToken',
     };
     it('login call is passed to the client library and tokens are saved', async () => {
       mockMutator.setTokens(tokens);
@@ -180,7 +180,7 @@ describe(`Client`, () => {
       mockMutator.resetMock();
       client = createNewClient();
       eventListeners = createEventListeners(
-        (client.addListener as unknown) as ListenerSetter
+        client.addListener as unknown as ListenerSetter,
       );
     });
     afterEach(() => {
@@ -190,7 +190,7 @@ describe(`Client`, () => {
       const email = 'foo@another.bar.com';
       mockMutator.setLoadProfilePayload(
         mockMutator.createValidUserData({ email }),
-        undefined
+        undefined,
       );
       const [error, user] = await to(client.loadUserProfile());
       expect(error).toBe(null);
@@ -218,7 +218,7 @@ describe(`Client`, () => {
       mockMutator.resetMock();
       client = createNewClient();
       eventListeners = createEventListeners(
-        (client.addListener as unknown) as ListenerSetter
+        client.addListener as unknown as ListenerSetter,
       );
     });
     afterEach(() => {

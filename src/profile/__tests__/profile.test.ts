@@ -1,22 +1,23 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import {
+  clearGraphQlClient,
   convertQueryToData,
   getProfileData,
   getProfileGqlClient,
-  ProfileQueryResult
+  ProfileQueryResult,
 } from '../profile';
 import { getClient } from '../../client/oidc-react';
 import { mockMutatorGetterOidc } from '../../client/__mocks__/oidc-react-mock';
 import {
   clearApiTokens,
   logoutUser,
-  setEnv
+  setEnv,
 } from '../../tests/client.test.helper';
 import {
   createInvalidProfileResponse,
   createValidProfileResponse,
   createValidProfileResponseData,
-  mockProfileResponse
+  mockProfileResponse,
 } from '../../tests/profile.test.helper';
 import { configureClient } from '../../client/__mocks__';
 import { FetchError } from '../../client';
@@ -25,7 +26,6 @@ import { GraphQLClientError } from '../../graphql/graphqlClient';
 
 describe('Profile.ts', () => {
   const config = configureClient();
-  const fetchMock = (global.fetch as unknown) as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   let restoreEnv: AnyFunction;
@@ -49,20 +49,21 @@ describe('Profile.ts', () => {
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
+      REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl,
     });
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
     await client.init();
   });
 
   afterAll(() => {
     restoreEnv();
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
 
-  afterEach(() => {
-    fetchMock.resetMocks();
+  afterEach(async () => {
+    fetchMock.mockReset({ includeSticky: true });
     mockMutator.resetMock();
+    await clearGraphQlClient();
   });
 
   beforeEach(() => {
@@ -74,14 +75,12 @@ describe('Profile.ts', () => {
     const email = 'email@dom.com';
     const emailDataTree = { emails: { edges: [{ node: { email } }] } };
     const response = createValidProfileResponseData(emailDataTree);
-    const data = convertQueryToData(
-      (response as unknown) as ProfileQueryResult
-    );
+    const data = convertQueryToData(response as unknown as ProfileQueryResult);
     expect(data && data.email).toBe(email);
     expect(data).toHaveProperty('id');
     expect(data).toHaveProperty('firstName');
     expect(
-      convertQueryToData((emailDataTree as unknown) as ProfileQueryResult)
+      convertQueryToData(emailDataTree as unknown as ProfileQueryResult),
     ).toBeUndefined();
   });
 
@@ -93,26 +92,55 @@ describe('Profile.ts', () => {
     expect(gqlclient).toBeDefined();
   });
 
+  it('getProfileGqlClient() returns the same client instance when called with the same token', () => {
+    const token = setValidApiToken();
+    const client1 = getProfileGqlClient(token);
+    const client2 = getProfileGqlClient(token);
+    expect(client1).toBe(client2);
+  });
+
+  it('getProfileGqlClient() creates a new client instance when the token changes', () => {
+    const token = setValidApiToken();
+    const client1 = getProfileGqlClient(token);
+    const client2 = getProfileGqlClient('new-token');
+    expect(client1).toBeDefined();
+    expect(client2).toBeDefined();
+    expect(client1).not.toBe(client2);
+  });
+
+  it('clearGraphQlClient() resets the cached client so a fresh one is created on next call', async () => {
+    const token = setValidApiToken();
+    const client1 = getProfileGqlClient(token);
+    expect(client1).toBeDefined();
+    await clearGraphQlClient();
+    const undefinedAfterClear = getProfileGqlClient();
+    expect(undefinedAfterClear).toBeUndefined();
+    const client2 = getProfileGqlClient(token);
+    expect(client2).toBeDefined();
+    expect(client1).not.toBe(client2);
+  });
+
   it('getProfileData() returns FetchError or ProfileData', async () => {
-    const errorBecauseApiTokenNotSet: FetchError = (await getProfileData()) as GraphQLClientError;
+    const errorBecauseApiTokenNotSet: FetchError =
+      (await getProfileData()) as GraphQLClientError;
     expect(errorBecauseApiTokenNotSet.error).toBeDefined();
     const token = setValidApiToken();
     mockProfileResponse({
       response: createInvalidProfileResponse(),
-      profileBackendUrl
+      profileBackendUrl,
     });
     const serverErrorResponse: FetchError = (await getProfileData(
-      token
+      token,
     )) as GraphQLClientError;
     expect(serverErrorResponse.error).toBeDefined();
     // must reset before new call to same url
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockProfileResponse({
       requestCallback: (req: unknown): void => {
         lastRequest = req as Request;
       },
       response: createValidProfileResponse(),
-      profileBackendUrl
+      profileBackendUrl,
     });
     const res = (await getProfileData(token)) as ProfileQueryResult;
     expect(res.data.myProfile?.firstName).toBe('firstName');

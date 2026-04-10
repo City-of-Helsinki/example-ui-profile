@@ -1,16 +1,28 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
+
+type FetchMock = typeof fetchMock;
 
 export const getFetchMockLastCall = (
-  fetchMock: FetchMock
+  fetchMock: FetchMock,
 ): [string | Request | undefined, RequestInit | undefined] => {
-  const mockCalls = fetchMock.mock.calls;
-  return mockCalls[mockCalls.length - 1];
+  const lastCall = fetchMock.callHistory.lastCall();
+  return (lastCall?.args || []) as [
+    string | Request | undefined,
+    RequestInit | undefined,
+  ];
 };
 
 export const getFetchMockLastCallAuthenticationHeader = (
-  fetchMock: FetchMock
+  fetchMock: FetchMock,
 ): string | null => {
   const lastCall = getFetchMockLastCall(fetchMock);
-  const lastCallHeaders = (lastCall[1] as RequestInit).headers as Headers;
-  return lastCallHeaders.get('Authorization');
+  const requestInit = lastCall[1];
+  if (requestInit?.headers) {
+    return new Headers(requestInit.headers).get('Authorization');
+  }
+  const request = lastCall[0];
+  if (request instanceof Request) {
+    return request.headers.get('Authorization');
+  }
+  return null;
 };

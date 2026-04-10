@@ -1,18 +1,16 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import {
   Client,
   FetchApiTokenOptions,
   JWTPayload,
   getClientConfig,
-  getTokenUri
+  getTokenUri,
 } from '../client';
 import {
   MockMutator,
-  requestDelayForStatusChangeDetectionInMs
+  requestDelayForStatusChangeDetectionInMs,
 } from '../client/__mocks__/index';
 import { AnyFunction, AnyObject } from '../common';
-
-type NodeJS = AnyObject;
 
 export const mockApiTokenResponse = (
   options: {
@@ -22,7 +20,7 @@ export const mockApiTokenResponse = (
     requestCallback?: AnyFunction;
     returnError?: boolean;
     additionalTokenAudience?: string;
-  } = {}
+  } = {},
 ): AnyObject => {
   const {
     audience,
@@ -30,9 +28,9 @@ export const mockApiTokenResponse = (
     delay,
     requestCallback,
     returnError,
-    additionalTokenAudience
+    additionalTokenAudience,
   } = options;
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const requestMock = fetchMock;
   const tokenKey =
     audience ||
     window._env_.REACT_APP_KEYCLOAK_PROFILE_API_TOKEN_AUDIENCE ||
@@ -45,21 +43,24 @@ export const mockApiTokenResponse = (
     ? { status: 401, body: JSON.stringify({ error: true }) }
     : {
         status: 200,
-        body: JSON.stringify(tokens)
+        body: JSON.stringify(tokens),
       };
   const endPointUri =
     uri ||
     getTokenUri({
-      ...getClientConfig()
+      ...getClientConfig(),
     });
-  fetchMock.doMockOnceIf(endPointUri, req => {
+  requestMock.once(endPointUri, (callLog) => {
+    const req =
+      callLog.request ||
+      new Request(callLog.url, callLog.options as RequestInit);
     if (requestCallback) {
       requestCallback(req);
     }
-    return new Promise(resolve =>
+    return new Promise((resolve) =>
       setTimeout(() => {
         resolve(responseData);
-      }, delay || requestDelayForStatusChangeDetectionInMs)
+      }, delay || requestDelayForStatusChangeDetectionInMs),
     );
   });
   return tokens;
@@ -80,38 +81,37 @@ export const logoutUser = (client: Client): void => {
 export const setUpUser = async (
   user: AnyObject,
   mockMutator: MockMutator,
-  client: Client
+  client: Client,
 ): Promise<void> => {
   mockMutator.setLoadProfilePayload(
     mockMutator.createValidUserData(user),
-    undefined
+    undefined,
   );
   await client.loadUserProfile();
   client.onAuthChange(true);
 };
 
 export const createApiTokenFetchPayload = (
-  overrides?: Partial<FetchApiTokenOptions>
+  overrides?: Partial<FetchApiTokenOptions>,
 ): FetchApiTokenOptions => ({
   audience: 'audience',
-  ...overrides
+  ...overrides,
 });
 
 export const setEnv = (overrides: Partial<NodeJS.ProcessEnv>): (() => void) => {
   const source = window._env_;
   const oldValues = Object.keys(overrides).reduce((currentObj, currentKey) => {
-    // eslint-disable-next-line no-param-reassign
     currentObj[currentKey] = source[currentKey];
     return currentObj;
   }, {} as AnyObject);
   window._env_ = {
     ...window._env_,
-    ...overrides
+    ...overrides,
   };
   return () => {
     window._env_ = {
       ...window._env_,
-      ...oldValues
+      ...oldValues,
     };
   };
 };

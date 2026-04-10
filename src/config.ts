@@ -2,7 +2,7 @@ import { ClientConfig } from './client/index';
 
 function envValueToBoolean(
   value: string | undefined | boolean,
-  defaultValue: boolean
+  defaultValue: boolean,
 ): boolean {
   const strValue = String(value).toLowerCase();
   if (
@@ -43,32 +43,32 @@ function createConfigFromEnv(): Partial<ClientConfig> {
     scope,
     autoSignIn: envValueToBoolean(
       window._env_[`REACT_APP_KEYCLOAK_AUTO_SIGN_IN`],
-      true
+      true,
     ),
     automaticSilentRenew: envValueToBoolean(
       window._env_[`REACT_APP_KEYCLOAK_AUTO_SILENT_RENEW`],
-      true
+      true,
     ),
     enableLogging: envValueToBoolean(
       window._env_[`REACT_APP_KEYCLOAK_LOGGING`],
-      false
+      false,
     ),
     tokenExchangePath,
     exampleApiTokenAudience,
     profileApiTokenAudience,
     apiGrantType,
-    apiPermission
+    apiPermission,
   };
 }
 
 const uiConfig: { profileUIUrl: string } = {
-  profileUIUrl: String(window._env_.REACT_APP_PROFILE_UI_URL)
+  profileUIUrl: String(window._env_.REACT_APP_PROFILE_UI_URL),
 };
 
 const keycloakConfig = {
   ...createConfigFromEnv(),
   path: '/helsinkitunnistus',
-  label: 'Helsinki-Tunnistus'
+  label: 'Helsinki-Tunnistus',
 } as ClientConfig;
 
 const isCallbackUrl = (route: string): boolean =>
@@ -77,5 +77,5 @@ const isCallbackUrl = (route: string): boolean =>
 export default {
   ui: uiConfig,
   keycloakConfig,
-  isCallbackUrl
+  isCallbackUrl,
 };

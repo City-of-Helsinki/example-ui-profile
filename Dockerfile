@@ -42,7 +42,7 @@ RUN yarn config set network-timeout 300000
 RUN yarn install --frozen-lockfile --ignore-scripts && yarn cache clean --force
 
 # Copy all necessary files
-COPY tsconfig.json .eslintignore .eslintrc .prettierrc .env .env.development .env.test /app/
+COPY tsconfig.json eslint.config.mjs .prettierrc .env .env.development .env.test /app/
 COPY /public/ /app/public
 COPY /scripts/ /app/scripts
 COPY /src/ /app/src
@@ -78,7 +78,7 @@ RUN chgrp -R 0 /usr/share/nginx/html && \
     chmod -R g=u /usr/share/nginx/html
 
 # Copy static build
-COPY --from=staticbuilder /app/build /usr/share/nginx/html
+COPY --from=staticbuilder /app/dist /usr/share/nginx/html
 
 # Copy nginx config
 COPY .prod/nginx.conf  /etc/nginx/nginx.conf

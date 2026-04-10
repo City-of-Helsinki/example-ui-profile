@@ -1,8 +1,6 @@
 import React from 'react';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
-import { waitFor } from '@testing-library/react';
-import { FetchMock } from 'jest-fetch-mock';
+import { render, waitFor, act } from '@testing-library/react';
+import fetchMock from '@fetch-mock/vitest';
 import { configureClient } from '../../client/__mocks__/index';
 import { getClient } from '../../client/oidc-react';
 import { mockMutatorGetterOidc } from '../../client/__mocks__/oidc-react-mock';
@@ -11,29 +9,28 @@ import {
   clearApiTokens,
   mockApiTokenResponse,
   setEnv,
-  logoutUser
+  logoutUser,
 } from '../../tests/client.test.helper';
 import {
   ProfileData,
   ProfileActions,
-  useProfileWithApiTokens
+  useProfileWithApiTokens,
 } from '../profile';
 import {
   createValidProfileResponse,
   createInvalidProfileResponse,
-  mockProfileResponse
+  mockProfileResponse,
 } from '../../tests/profile.test.helper';
 import { AnyObject, AnyFunction } from '../../common';
 import { FetchStatus } from '../../apiAccessTokens/useApiAccessTokens';
 
 describe('Profile.ts useProfileWithApiTokens hook ', () => {
   configureClient({ tokenExchangePath: '/token-exchange/', autoSignIn: true });
-  const fetchMock = (global.fetch as unknown) as FetchMock;
   const mockMutator = mockMutatorGetterOidc();
   const client = getClient();
   const profileBackendUrl = 'https://localhost/profileGraphql/';
   let profileActions: ProfileActions;
-  let dom: ReactWrapper;
+  let unmount: () => void;
   let restoreEnv: AnyFunction;
 
   const ProfileHookTester = (): React.ReactElement => {
@@ -57,7 +54,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
 
   const setUpTest = async ({
     response,
-    returnApiTokenError
+    returnApiTokenError,
   }: {
     response: AnyObject;
     audience?: string;
@@ -65,69 +62,67 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     returnError?: boolean;
   }): Promise<void> => {
     mockApiTokenResponse({
-      returnError: returnApiTokenError
+      returnError: returnApiTokenError,
     });
 
     mockProfileResponse({
       response,
-      profileBackendUrl
+      profileBackendUrl,
     });
 
-    dom = mount(<TestWrapper />);
+    ({ unmount } = render(<TestWrapper />));
   };
 
   beforeAll(async () => {
     restoreEnv = setEnv({
-      REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl
+      REACT_APP_PROFILE_BACKEND_URL: profileBackendUrl,
     });
-    fetchMock.enableMocks();
+    fetchMock.mockGlobal();
     await client.init();
   });
 
   afterAll(() => {
     restoreEnv();
-    fetchMock.disableMocks();
+    fetchMock.unmockGlobal();
   });
 
   afterEach(() => {
-    fetchMock.resetMocks();
+    fetchMock.mockReset({ includeSticky: true });
     mockMutator.resetMock();
   });
 
   beforeEach(() => {
-    if (dom && dom.length) {
-      dom.unmount();
+    if (unmount) {
+      unmount();
     }
     logoutUser(client);
     clearApiTokens(client);
   });
 
   const getProfileStatus = (): FetchStatus | undefined => {
-    dom.update();
-    const el = dom.find('#request-status').at(0);
-    return el && el.length ? (el.text() as FetchStatus) : undefined;
+    const text = document.getElementById('request-status')?.textContent;
+    return text ? (text as FetchStatus) : undefined;
   };
 
   const getApiAccessTokenStatus = (): FetchStatus | undefined => {
-    dom.update();
-    const el = dom.find('#api-token-status').at(0);
-    return el && el.length ? (el.text() as FetchStatus) : undefined;
+    const text = document.getElementById('api-token-status')?.textContent;
+    return text ? (text as FetchStatus) : undefined;
   };
 
   it('depends on apiAccessToken hook and changes with it', async () => {
     await act(async () => {
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
       await waitFor(() =>
-        expect(getApiAccessTokenStatus()).toBe('unauthorized')
+        expect(getApiAccessTokenStatus()).toBe('unauthorized'),
       );
       await setUser({});
       await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
       await waitFor(() => expect(getProfileStatus()).toBe('loading'));
       await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
       expect((profileActions.getData() as ProfileData).firstName).toEqual(
-        'firstName'
+        'firstName',
       );
     });
   });
@@ -135,19 +130,19 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   it('provides a "fetch"-action that requests data', async () => {
     await act(async () => {
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
       await setUser({});
       await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
       mockProfileResponse({
         response: createInvalidProfileResponse(),
-        profileBackendUrl
+        profileBackendUrl,
       });
       profileActions.request({});
       await waitFor(() => expect(getProfileStatus()).toBe('error'));
       mockProfileResponse({
         response: createValidProfileResponse(),
-        profileBackendUrl
+        profileBackendUrl,
       });
       profileActions.request({});
       await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
@@ -158,7 +153,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     await act(async () => {
       await setUser({});
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
 
       await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
@@ -174,7 +169,7 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
     await act(async () => {
       await setUser({});
       await setUpTest({
-        response: createValidProfileResponse()
+        response: createValidProfileResponse(),
       });
 
       await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));

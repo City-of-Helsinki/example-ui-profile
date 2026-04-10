@@ -5,7 +5,7 @@ import {
   ClientError,
   ClientErrorObject,
   ClientStatus,
-  User
+  User,
 } from '../../index';
 import { configureClient } from '../../__mocks__';
 import { store, connectClient } from '../store';
@@ -14,7 +14,7 @@ import {
   CONNECTED_ACTION,
   errorThrown,
   authorized,
-  unauthorized
+  unauthorized,
 } from '../actions';
 import { mockMutatorGetterOidc } from '../../__mocks__/oidc-react-mock';
 
@@ -34,40 +34,40 @@ describe('Redux store ', () => {
     it('should reset the store values to client values with CONNECTED_ACTION', () => {
       client.setError({
         type: ClientError.AUTH_REFRESH_ERROR,
-        message: 'foo'
+        message: 'foo',
       });
       client.setStatus(ClientStatus.AUTHORIZED);
       const expectedState = {
         ...state,
         status: ClientStatus.AUTHORIZED,
         authenticated: true,
-        initialized: true
+        initialized: true,
       };
       expect(
-        reducer(state, { type: CONNECTED_ACTION, payload: client })
+        reducer(state, { type: CONNECTED_ACTION, payload: client }),
       ).toEqual(expectedState);
     });
     it('Error action sets error', () => {
       const error: ClientErrorObject = {
         type: ClientError.AUTH_REFRESH_ERROR,
-        message: 'foo'
+        message: 'foo',
       };
       const expectedState = {
         ...state,
-        error
+        error,
       };
       expect(reducer(state, errorThrown(error))).toEqual(expectedState);
     });
     it('authorized action sets status, authorized and user', () => {
       const user: User = {
-        email: 'user@foo.bar'
+        email: 'user@foo.bar',
       };
       const expectedState = {
         ...state,
         status: ClientStatus.AUTHORIZED,
         initialized: true,
         authenticated: true,
-        user
+        user,
       };
       expect(reducer(state, authorized(user))).toEqual(expectedState);
     });
@@ -77,7 +77,7 @@ describe('Redux store ', () => {
         status: ClientStatus.UNAUTHORIZED,
         initialized: true,
         authenticated: false,
-        user: undefined
+        user: undefined,
       };
       expect(reducer(state, unauthorized())).toEqual(expectedState);
     });
@@ -98,7 +98,7 @@ describe('Redux store ', () => {
         status: ClientStatus.AUTHORIZED,
         initialized: true,
         authenticated: true,
-        user
+        user,
       };
       expect(store.getState()).toEqual(expectedAuthenticatedState);
       client.onAuthChange(false);
@@ -107,7 +107,7 @@ describe('Redux store ', () => {
         status: ClientStatus.UNAUTHORIZED,
         initialized: true,
         authenticated: false,
-        user: undefined
+        user: undefined,
       };
       expect(store.getState()).toEqual(expectedUnauthenticatedState);
     });

@@ -3,7 +3,7 @@ import {
   FetchApiTokenOptions,
   FetchError,
   JWTPayload,
-  getClientConfig
+  getClientConfig,
 } from '../client/index';
 import { useClient } from '../client/hooks';
 
@@ -24,9 +24,8 @@ export type ApiAccessTokenActions = {
   getToken: () => string | undefined;
 };
 
-export const ApiAccessTokenActionsContext = createContext<ApiAccessTokenActions | null>(
-  null
-);
+export const ApiAccessTokenActionsContext =
+  createContext<ApiAccessTokenActions | null>(null);
 
 export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
   const client = useClient();
@@ -35,7 +34,7 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
     ? client.getApiToken(audience)
     : undefined;
   const [apiTokens, setApiTokens] = useState<JWTPayload | undefined>(
-    apiToken ? { [audience]: apiToken } : undefined
+    apiToken ? { [audience]: apiToken } : undefined,
   );
 
   const resolveStatus = (): FetchStatus => {
@@ -50,7 +49,7 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
 
   const resolveCurrentStatus = (
     baseStatus: FetchStatus,
-    stateStatus: FetchStatus
+    stateStatus: FetchStatus,
   ): FetchStatus => {
     if (stateStatus === 'unauthorized' || baseStatus === 'unauthorized') {
       return baseStatus;
@@ -67,7 +66,7 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
     setStatus('unauthorized');
   }
   const fetchTokens: ApiAccessTokenActions['fetch'] = useCallback(
-    async options => {
+    async (options) => {
       setStatus('loading');
       const result = await client.getApiAccessToken(options);
       if ((result as FetchError).error) {
@@ -76,7 +75,7 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
         setError(
           resultAsError.message
             ? new Error(`${resultAsError.message} ${resultAsError.status}`)
-            : resultAsError.error
+            : resultAsError.error,
         );
       } else {
         setError(undefined);
@@ -85,7 +84,7 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       }
       return result;
     },
-    [client]
+    [client],
   );
 
   useEffect(() => {
@@ -113,7 +112,7 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       }
       return undefined;
     },
-    fetch: options => fetchTokens(options),
-    getToken: () => (apiTokens ? apiTokens[audience] : undefined)
+    fetch: (options) => fetchTokens(options),
+    getToken: () => (apiTokens ? apiTokens[audience] : undefined),
   };
 }

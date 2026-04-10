@@ -9,7 +9,7 @@ import { useApiAccessTokens } from '../apiAccessTokens/useApiAccessTokens';
 
 const TokenForm = ({
   audience,
-  onCompletion
+  onCompletion,
 }: {
   audience: string;
   onCompletion: (audience: string) => void;
@@ -47,19 +47,19 @@ const TokenForm = ({
 };
 
 const TokenFetcher = ({
-  audiences
+  audiences,
 }: {
   audiences: string[];
 }): React.ReactElement => {
   const [readyCount, updateReadyCount] = useState(0);
   const onCompletion = useCallback(
-    audience => {
-      const index = audiences.findIndex(aud => aud === audience);
+    (audience) => {
+      const index = audiences.findIndex((aud) => aud === audience);
       if (index > -1) {
-        updateReadyCount(n => n + 1);
+        updateReadyCount((n) => n + 1);
       }
     },
-    [audiences]
+    [audiences],
   );
   return (
     <>
@@ -92,7 +92,7 @@ const AuthenticatedContent = (): React.ReactElement => {
       <TokenFetcher
         audiences={[
           config.exampleApiTokenAudience,
-          config.profileApiTokenAudience
+          config.profileApiTokenAudience,
         ]}
       />
     </PageContent>
@@ -103,7 +103,7 @@ const ApiAccessTokens = (): React.ReactElement =>
   WithAuth(
     () => <AuthenticatedContent />,
     UnauthenticatedContent,
-    AuthenticatingInfo
+    AuthenticatingInfo,
   );
 
 export default ApiAccessTokens;

@@ -1,10 +1,10 @@
-import { FetchMock } from 'jest-fetch-mock';
+import fetchMock from '@fetch-mock/vitest';
 import { AnyFunction, AnyObject } from '../common';
 import { ProfileData } from '../profile/profile';
 import { requestDelayForStatusChangeDetectionInMs } from '../client/__mocks__';
 
 export const createValidProfileResponseData = (
-  userData: AnyObject
+  userData: AnyObject,
 ): ProfileData => ({ data: { myProfile: { ...userData } } });
 
 export const mockProfileResponse = (options: {
@@ -13,41 +13,44 @@ export const mockProfileResponse = (options: {
   delay?: number;
   requestCallback?: AnyFunction;
 }): void => {
-  const fetchMock = (global.fetch as unknown) as FetchMock;
+  const requestMock = fetchMock;
   const { response, delay, requestCallback, profileBackendUrl } = options;
-  fetchMock.doMockOnceIf(profileBackendUrl, req => {
+  requestMock.once(profileBackendUrl, (callLog) => {
+    const req =
+      callLog.request ||
+      new Request(callLog.url, callLog.options as RequestInit);
     if (requestCallback) {
       requestCallback(req);
     }
-    return new Promise(resolve =>
+    return new Promise((resolve) =>
       setTimeout(() => {
         resolve(response);
-      }, delay || requestDelayForStatusChangeDetectionInMs)
+      }, delay || requestDelayForStatusChangeDetectionInMs),
     );
   });
 };
 
 export const createValidProfileResponse = (
-  overrides?: ProfileData
+  overrides?: ProfileData,
 ): { status: number; body: string } => {
   const responseBody = createValidProfileResponseData({
     firstName: 'firstName',
-    ...overrides
+    ...overrides,
   });
   return {
     status: 200,
-    body: JSON.stringify(responseBody)
+    body: JSON.stringify(responseBody),
   };
 };
 
 export const createInvalidProfileResponse = (
-  overrides?: ProfileData
+  overrides?: ProfileData,
 ): { status: number; body: string } => {
   const responseBody = {
-    ...overrides
+    ...overrides,
   };
   return {
     status: 401,
-    body: JSON.stringify(responseBody)
+    body: JSON.stringify(responseBody),
   };
 };

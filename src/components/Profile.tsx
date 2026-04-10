@@ -3,7 +3,7 @@ import { Button } from 'hds-react';
 import {
   ProfileDataType,
   useProfileWithApiTokens,
-  clearGraphQlClient
+  clearGraphQlClient,
 } from '../profile/profile';
 
 import styles from './styles.module.css';
@@ -17,25 +17,25 @@ const sanitizeNode = (node: AnyObject): AnyObject => {
     objectEntries
       .filter(
         ([key, value]) =>
-          value !== null && value !== undefined && key !== typeNameProp
+          value !== null && value !== undefined && key !== typeNameProp,
       )
       .map(([key, value]) => [
         key,
-        typeof value === 'object' ? sanitizeNode(value as AnyObject) : value
-      ])
+        typeof value === 'object' ? sanitizeNode(value as AnyObject) : value,
+      ]),
   );
 };
 
 const nodeToJSON = (node: AnyObject): AnyObject | AnyObject[] => {
   if (Array.isArray(node.edges)) {
-    return node.edges.map(edge => nodeToJSON(edge.node) as AnyObject);
+    return node.edges.map((edge) => nodeToJSON(edge.node) as AnyObject);
   }
   return sanitizeNode(node);
 };
 
 const PropToComponent = ([prop, value]: [
   string,
-  ProfileDataType
+  ProfileDataType,
 ]): React.ReactElement | null => {
   if (prop === typeNameProp) {
     return null;
@@ -61,7 +61,7 @@ const Profile = (): React.ReactElement => {
     getData,
     getRequestStatus,
     getRequestError,
-    request
+    request,
   } = useProfileWithApiTokens();
 
   const apiAccessTokenStatus = getApiTokenStatus();
@@ -96,7 +96,7 @@ const Profile = (): React.ReactElement => {
       <h2>Profiilin tiedot:</h2>
       {profileData && (
         <ul className={styles['user-token-list']}>
-          {Object.entries(profileData).map(arr => PropToComponent(arr))}
+          {Object.entries(profileData).map((arr) => PropToComponent(arr))}
         </ul>
       )}
       {resultErrorMessage && (

@@ -1,17 +1,25 @@
-#!/usr/bin/env ts-node-script
-
+import dotenv from 'dotenv';
 import * as path from 'path';
 import fs from 'fs';
 import util from 'util';
 
-// react-scipts config requires ENV to be set
-const defaultNodeEnv = process.env.TEST ? 'test' : 'development';
-// Prevent collision is app is running while tests are started
-const configFile = process.env.TEST ? 'test-env-config.js' : 'env-config.js';
+const USE_TEST_ENV = process.env.TEST === 'true';
+const defaultNodeEnv = USE_TEST_ENV ? 'test' : 'development';
 
-process.env.NODE_ENV = process.env.NODE_ENV || defaultNodeEnv;
+const env: Record<string, string | undefined> = {};
 
-const getClientEnvironment = require('../node_modules/react-scripts/config/env.js');
+env.NODE_ENV = process.env.NODE_ENV || defaultNodeEnv;
+
+dotenv.config({
+  processEnv: env,
+  ...(USE_TEST_ENV
+    ? { path: ['.env', '.env.test'] }
+    : { path: ['.env', `.env.${env.NODE_ENV}`, '.env.local'] }),
+  override: true,
+});
+
+// Prevent collision if app is running while tests are started
+const configFile = USE_TEST_ENV ? 'test-env-config.js' : 'env-config.js';
 
 const configurationFile: string = path.join(
   __dirname,
@@ -20,15 +28,16 @@ const configurationFile: string = path.join(
 
 const start = async () => {
   try {
-    const envVariables = getClientEnvironment();
+    const envVariables = env;
+
     fs.writeFile(
       configurationFile,
-      'window._env_ = ' + util.inspect(envVariables.raw, false, 2, false),
+      'window._env_ = ' + util.inspect(envVariables, false, 2, false),
       function(err) {
         if (err) {
           return console.error(err);
         }
-        return console.log('File created!');
+        console.log('File created!');
       }
     );
   } catch (err) {
