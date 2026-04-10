@@ -181,7 +181,7 @@ describe('Client factory ', () => {
     beforeAll(() => fetchMock.mockGlobal());
     afterAll(() => fetchMock.unmockGlobal());
     afterEach(() => fetchMock.mockReset({ includeSticky: true }));
-    const apiTokenRouteName = apiTokenRouteName;
+    const apiTokenRouteName = 'apiTokenRoute';
     const createOkResponse = (responseBody: string | AnyObject) => ({
       status: 200,
       body:
