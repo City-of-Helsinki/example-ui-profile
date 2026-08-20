@@ -18,5 +18,8 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     clearMocks: true,
     css: false,
+    coverage: {
+      reporter: ['text', 'html', 'clover', 'json', 'lcov'],
+    },
   },
 });
