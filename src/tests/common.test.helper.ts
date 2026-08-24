@@ -1,6 +1,6 @@
-import fetchMock from '@fetch-mock/vitest';
+import fetchMockVitest from '@fetch-mock/vitest';
 
-type FetchMock = typeof fetchMock;
+type FetchMock = typeof fetchMockVitest;
 
 export const getFetchMockLastCall = (
   fetchMock: FetchMock,
