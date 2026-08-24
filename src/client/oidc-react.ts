@@ -136,11 +136,10 @@ export function createOidcClient(): Client {
       const userData = user && user.profile;
       // oidc-client-ts filters 'amr' from profile by default and stores
       // 'session_state' as a top-level User field, not in profile claims
-      if (
-        userData &&
-        userData.name &&
-        (user.session_state || userData.session_state || userData.amr)
-      ) {
+      const hasSessionClaim = Boolean(
+        user?.session_state || userData?.session_state || userData?.amr,
+      );
+      if (userData?.name && hasSessionClaim) {
         return {
           name: userData.name,
           given_name: userData.given_name,

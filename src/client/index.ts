@@ -3,12 +3,7 @@ import to from 'await-to-js';
 export type User = Record<string, string | number | boolean>;
 export type Token = string | undefined;
 export type JWTPayload = Record<string, string>;
-export type EventPayload =
-  | User
-  | undefined
-  | Client
-  | ClientStatusId
-  | ClientErrorObject;
+export type EventPayload = User | Client | ClientStatusId | ClientErrorObject;
 export type EventListener = (payload?: EventPayload) => void;
 export type Client = {
   init: () => Promise<User | undefined | null>;

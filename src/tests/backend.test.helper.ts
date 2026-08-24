@@ -1,7 +1,7 @@
-import fetchMock from '@fetch-mock/vitest';
+import fetchMockVitest from '@fetch-mock/vitest';
 import { AnyObject } from '../common';
 
-type FetchMock = typeof fetchMock;
+type FetchMock = typeof fetchMockVitest;
 
 export type MockResponseProps = {
   return401?: boolean;
