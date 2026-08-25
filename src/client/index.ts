@@ -18,7 +18,7 @@ export type Client = {
   loadUserProfile: () => Promise<User>;
   getStatus: () => ClientStatusId;
   setStatus: (newStatus: ClientStatusId) => boolean;
-  getError: () => ClientErrorObject;
+  getError: () => ClientErrorObject | undefined;
   setError: (newError?: ClientErrorObject) => boolean;
   getUserProfile: () => User | undefined;
   addListener: (
@@ -81,7 +81,7 @@ export const ClientError = {
   USER_DATA_ERROR: 'USER_DATA_ERROR',
 } as const;
 
-export type ClientErrorObject = { type: string; message: string } | undefined;
+export type ClientErrorObject = { type: string; message: string };
 
 export interface ClientConfig {
   /**
@@ -226,7 +226,7 @@ export function createEventHandling(): EventHandlers {
 
 export function createClient(): ClientFactory {
   let status: ClientStatusId = ClientStatus.NONE;
-  let error: ClientErrorObject;
+  let error: ClientErrorObject | undefined;
   let user: User | undefined;
   const tokenStorage: JWTPayload = {};
   const { addListener, eventTrigger } = createEventHandling();
@@ -289,7 +289,7 @@ export function createClient(): ClientFactory {
       ? tokenData['access_token']
       : tokenData[audience];
 
-    const storageData = { [audience]: storageValue } as JWTPayload;
+    const storageData = { [audience]: storageValue };
     addApiTokens(storageData);
     if (!isSingleTokenResponse) {
       Object.keys(tokenData).forEach((currentKey) => {
@@ -342,14 +342,14 @@ export function createClient(): ClientFactory {
         status: fetchResponse.status,
         message: fetchResponse.statusText,
         error: new Error(await fetchResponse.text()),
-      } as FetchError;
+      };
     }
     const [parseError, json] = await to(fetchResponse.json());
     if (parseError) {
       return {
         error: parseError,
         message: 'Returned data is not valid json',
-      } as FetchError;
+      };
     }
     return saveReturnedApiTokens(json, options.audience);
   };
