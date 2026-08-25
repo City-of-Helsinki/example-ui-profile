@@ -217,7 +217,7 @@ const executeAPIAction: Request = async (options) => {
   } else if (resultAsError.message) {
     throw new Error(resultAsError.message);
   }
-  return (result as ProfileQueryResult).data.myProfile as ProfileData;
+  return (result as ProfileQueryResult).data.myProfile;
 };
 
 export function useProfileWithApiTokens(): ProfileActions {

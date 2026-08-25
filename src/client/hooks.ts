@@ -39,10 +39,10 @@ export function useClient(): Client {
   return clientFromRef;
 }
 
-export function useClientErrorDetection(): ClientErrorObject {
+export function useClientErrorDetection(): ClientErrorObject | undefined {
   const clientRef: React.Ref<Client> = useRef(getClient());
   const clientFromRef: Client = clientRef.current as Client;
-  const [error, setError] = useState<ClientErrorObject>(undefined);
+  const [error, setError] = useState<ClientErrorObject | undefined>(undefined);
   useEffect(() => {
     let isAuthorized = false;
     const statusListenerDisposer = clientFromRef.addListener(

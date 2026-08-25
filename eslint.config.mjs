@@ -55,12 +55,8 @@ export default tseslint.config(
 
       // disabled
       'react/prop-types': 'off',
-      'react/destructuring-assignment': 'off',
-      'react/static-property-placement': 'off',
       'react/react-in-jsx-scope': 'off',
-      'react/jsx-props-no-spreading': 'off',
       'jsx-a11y/alt-text': 'off',
-      'no-unused-vars': 'off',
 
       // custom
       'no-magic-numbers': [
@@ -69,8 +65,6 @@ export default tseslint.config(
       ],
       'arrow-body-style': ['error', 'as-needed'],
       'line-comment-position': ['error', { position: 'above' }],
-      'no-restricted-imports': ['error', { patterns: [' * as'] }],
-      'arrow-parens': ['error', 'as-needed'],
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
@@ -80,9 +74,6 @@ export default tseslint.config(
       'no-underscore-dangle': ['error', { allow: ['__typename', '_env_'] }],
       'vitest/expect-expect': 'off',
       'vitest/valid-expect': 'off',
-      'vitest/no-standalone-expect': 'off',
-      'vitest/no-mocks-import': 'off',
-      'vitest/no-conditional-expect': 'off',
       'vitest/valid-title': 'off',
       'import/no-named-as-default': 'off',
 
