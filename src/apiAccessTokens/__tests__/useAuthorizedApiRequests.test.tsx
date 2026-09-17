@@ -164,113 +164,111 @@ describe('useAuthorizedApiRequests hook ', () => {
   });
 
   it('request-function passed to the hook is auto called with apiTokens when autoFetchProps are set', async () => {
-    await act(async () => {
-      setRequestMockResponse();
-      autoFetch = true;
-      await setUpTest();
-      await waitFor(() => {
-        expect(getApiTokenStatusFromDom()).toBe('unauthorized');
-        expect(getRequestStatusFromDom()).toBe('waiting');
-      });
-      await updateApiAccessTokenMockStatus('loaded');
-      await waitForRequestUpdate('loaded');
-      expect(getDataFromDom()?.something).toBeTruthy();
+    setRequestMockResponse();
+    autoFetch = true;
+    await setUpTest();
+    await waitFor(() => {
+      expect(getApiTokenStatusFromDom()).toBe('unauthorized');
+      expect(getRequestStatusFromDom()).toBe('waiting');
+    });
+    await updateApiAccessTokenMockStatus('loaded');
+    await waitForRequestUpdate('loaded');
+    expect(getDataFromDom()?.something).toBeTruthy();
 
-      const authHeader = getFetchMockLastCallAuthenticationHeader(fetchMock);
-      expect(authHeader).toBe(`Bearer ${validTokens[testAudience]}`);
-      expect(requestTracker).toHaveBeenCalledTimes(1);
-      expect(requestTracker).toHaveBeenLastCalledWith({
-        token: validTokens[testAudience],
-        ...autoFetchProp,
-      });
+    const authHeader = getFetchMockLastCallAuthenticationHeader(fetchMock);
+    expect(authHeader).toBe(`Bearer ${validTokens[testAudience]}`);
+    expect(requestTracker).toHaveBeenCalledTimes(1);
+    expect(requestTracker).toHaveBeenLastCalledWith({
+      token: validTokens[testAudience],
+      ...autoFetchProp,
     });
   });
   it('request-function passed to the hook is not auto called when autoFetchProps are not set ', async () => {
-    await act(async () => {
-      await setUpTest();
-      await updateApiAccessTokenMockStatus('loaded');
-      // api request should not be called
-      // therefore tests should never succeed
-      // and catch-block should be reached after timeout
-      let waitForTimedOut = false;
-      try {
-        await waitFor(
-          () => {
-            expect(getRequestStatusFromDom()).not.toEqual('waiting');
-            expect(requestTracker.mock.calls.length === 0).toBeFalsy();
-          },
-          { timeout: 2000 },
-        );
-      } catch {
-        waitForTimedOut = true;
-      }
-      expect(waitForTimedOut).toBeTruthy();
-    });
+    await setUpTest();
+    await updateApiAccessTokenMockStatus('loaded');
+    // api request should not be called
+    // therefore tests should never succeed
+    // and catch-block should be reached after timeout
+    let waitForTimedOut = false;
+    try {
+      await waitFor(
+        () => {
+          expect(getRequestStatusFromDom()).not.toEqual('waiting');
+          expect(requestTracker.mock.calls.length === 0).toBeFalsy();
+        },
+        { timeout: 2000 },
+      );
+    } catch {
+      waitForTimedOut = true;
+    }
+    expect(waitForTimedOut).toBeTruthy();
   });
   it('request-function can be called manually multiple times', async () => {
-    await act(async () => {
-      const firstCallProps = { data: { autoFetchProp: false, data: '1' } };
-      await setUpTest();
-      await updateApiAccessTokenMockStatus('loaded');
+    const firstCallProps = { data: { autoFetchProp: false, data: '1' } };
+    await setUpTest();
+    await updateApiAccessTokenMockStatus('loaded');
+    act(() => {
       authorizedApiActions.request(firstCallProps);
-      expect(authorizedApiActions.getRequestStatus()).toBe('loading');
-      await waitFor(() => expect(getRequestStatusFromDom()).toBe('loaded'));
-      expect(getDataFromDom()).toEqual(responseData);
-      expect(requestTracker).toHaveBeenCalledTimes(1);
-      expect(requestTracker).toHaveBeenLastCalledWith({
-        token: validTokens[testAudience],
-        ...firstCallProps,
-      });
+    });
+    expect(authorizedApiActions.getRequestStatus()).toBe('loading');
+    await waitFor(() => expect(getRequestStatusFromDom()).toBe('loaded'));
+    expect(getDataFromDom()).toEqual(responseData);
+    expect(requestTracker).toHaveBeenCalledTimes(1);
+    expect(requestTracker).toHaveBeenLastCalledWith({
+      token: validTokens[testAudience],
+      ...firstCallProps,
+    });
+    act(() => {
       authorizedApiActions.request();
-      expect(authorizedApiActions.getRequestStatus()).toBe('loading');
-      expect(authorizedApiActions.getData()).toEqual(responseData);
-      await waitFor(() =>
-        expect(authorizedApiActions.getRequestStatus()).toBe('loaded'),
-      );
-      expect(requestTracker).toHaveBeenCalledTimes(2);
-      expect(requestTracker).toHaveBeenLastCalledWith({
-        token: validTokens[testAudience],
-      });
+    });
+    expect(authorizedApiActions.getRequestStatus()).toBe('loading');
+    expect(authorizedApiActions.getData()).toEqual(responseData);
+    await waitFor(() =>
+      expect(authorizedApiActions.getRequestStatus()).toBe('loaded'),
+    );
+    expect(requestTracker).toHaveBeenCalledTimes(2);
+    expect(requestTracker).toHaveBeenLastCalledWith({
+      token: validTokens[testAudience],
     });
   });
   it('request-function errors are handled and successful request clears the error', async () => {
-    await act(async () => {
-      await setUpTest({ backendResponseProps: { return401: true } });
-      await updateApiAccessTokenMockStatus('loaded');
-      expect(authorizedApiActions.getRequestError()).toBeUndefined();
+    await setUpTest({ backendResponseProps: { return401: true } });
+    await updateApiAccessTokenMockStatus('loaded');
+    expect(authorizedApiActions.getRequestError()).toBeUndefined();
+    act(() => {
       authorizedApiActions.request({});
-      expect(authorizedApiActions.getRequestStatus()).toBe('loading');
-      await waitFor(() => expect(getRequestStatusFromDom()).toBe('error'));
-      expect(authorizedApiActions.getRequestError()).toBeDefined();
-
-      fetchMock.mockReset({ includeSticky: true });
-      setRequestMockResponse();
-      authorizedApiActions.request({});
-      expect(authorizedApiActions.getRequestStatus()).toBe('loading');
-      await waitFor(() => expect(getRequestStatusFromDom()).toBe('loaded'));
-      expect(authorizedApiActions.getRequestError()).toBeUndefined();
-      expect(getDataFromDom()).toEqual(responseData);
     });
+    expect(authorizedApiActions.getRequestStatus()).toBe('loading');
+    await waitFor(() => expect(getRequestStatusFromDom()).toBe('error'));
+    expect(authorizedApiActions.getRequestError()).toBeDefined();
+
+    fetchMock.mockReset({ includeSticky: true });
+    setRequestMockResponse();
+    act(() => {
+      authorizedApiActions.request({});
+    });
+    expect(authorizedApiActions.getRequestStatus()).toBe('loading');
+    await waitFor(() => expect(getRequestStatusFromDom()).toBe('loaded'));
+    expect(authorizedApiActions.getRequestError()).toBeUndefined();
+    expect(getDataFromDom()).toEqual(responseData);
   });
   it('request-function sets an error when called without apiTokens', async () => {
-    await act(async () => {
-      mockApiTokenResponse();
-      await setUpTest();
-      expect(authorizedApiActions.getRequestError()).toBeUndefined();
+    mockApiTokenResponse();
+    await setUpTest();
+    expect(authorizedApiActions.getRequestError()).toBeUndefined();
+    act(() => {
       authorizedApiActions.request({});
-      expect(authorizedApiActions.getRequestError()).toBeDefined();
     });
+    expect(authorizedApiActions.getRequestError()).toBeDefined();
   });
   it('logging out clears data and sets an error', async () => {
-    await act(async () => {
-      autoFetch = true;
-      await setUpTest();
-      await updateApiAccessTokenMockStatus('loaded');
-      await waitForRequestUpdate('loaded');
-      expect(authorizedApiActions.getData()).toEqual(responseData);
-      await updateApiAccessTokenMockStatus('unauthorized');
-      await waitForRequestUpdate('error');
-      expect(authorizedApiActions.getRequestError()).toBeDefined();
-    });
+    autoFetch = true;
+    await setUpTest();
+    await updateApiAccessTokenMockStatus('loaded');
+    await waitForRequestUpdate('loaded');
+    expect(authorizedApiActions.getData()).toEqual(responseData);
+    await updateApiAccessTokenMockStatus('unauthorized');
+    await waitForRequestUpdate('error');
+    expect(authorizedApiActions.getRequestError()).toBeDefined();
   });
 });

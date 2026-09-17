@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { render, waitFor, act } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import fetchMock from '@fetch-mock/vitest';
 import { setEnv } from '../../tests/client.test.helper';
 import { useBackendWithApiTokens, BackendActions } from '../backend';
@@ -102,33 +102,29 @@ describe('backend.ts useBackendWithApiTokens hook ', () => {
   });
 
   it('initiates the auto request when api tokens are loaded', async () => {
-    await act(async () => {
-      await setUpTest();
-      await waitFor(() => {
-        expect(backendActions.getApiTokenStatus()).toBe('unauthorized');
-        expect(backendActions.getRequestStatus()).toBe('waiting');
-      });
-      await updateApiAccessTokenMockStatus('loaded');
-      await waitForRequestUpdate('loaded');
-      await waitFor(() =>
-        expect(backendActions.getData()).toEqual(validResponseData),
-      );
+    await setUpTest();
+    await waitFor(() => {
+      expect(backendActions.getApiTokenStatus()).toBe('unauthorized');
+      expect(backendActions.getRequestStatus()).toBe('waiting');
     });
+    await updateApiAccessTokenMockStatus('loaded');
+    await waitForRequestUpdate('loaded');
+    await waitFor(() =>
+      expect(backendActions.getData()).toEqual(validResponseData),
+    );
   });
 
   it('handles errors and manual updates', async () => {
-    await act(async () => {
-      await setUpTest({ backendResponseProps: { return401: true } });
-      await updateApiAccessTokenMockStatus('loaded');
-      await waitForRequestUpdate('error');
-      fetchMock.mockReset({ includeSticky: true });
-      setRequestMockResponse({
-        responseData: validResponseData,
-      });
-      backendActions.request();
-      await waitFor(() =>
-        expect(backendActions.getData()).toEqual(validResponseData),
-      );
+    await setUpTest({ backendResponseProps: { return401: true } });
+    await updateApiAccessTokenMockStatus('loaded');
+    await waitForRequestUpdate('error');
+    fetchMock.mockReset({ includeSticky: true });
+    setRequestMockResponse({
+      responseData: validResponseData,
     });
+    backendActions.request();
+    await waitFor(() =>
+      expect(backendActions.getData()).toEqual(validResponseData),
+    );
   });
 });

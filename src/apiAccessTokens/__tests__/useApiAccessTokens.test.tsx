@@ -71,62 +71,54 @@ describe('useApiAccessTokens hook ', () => {
   };
 
   it('status depends on client and changes with it', async () => {
-    await act(async () => {
-      await setUpTest();
-      await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getToken()).toBeUndefined();
-      expect(apiTokenActions.getStatus() === 'unauthorized');
-      const tokens = mockApiTokenResponse({ audience: testAudience });
-      await setUser({});
-      await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
-      await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
-      logoutUser(client);
-      await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getToken()).toBeUndefined();
-    });
+    await setUpTest();
+    await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
+    expect(apiTokenActions.getToken()).toBeUndefined();
+    expect(apiTokenActions.getStatus() === 'unauthorized');
+    const tokens = mockApiTokenResponse({ audience: testAudience });
+    await setUser({});
+    await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
+    await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
+    expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
+    await act(async () => logoutUser(client));
+    await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
+    expect(apiTokenActions.getToken()).toBeUndefined();
   });
 
   it('can be controlled with actions', async () => {
-    await act(async () => {
-      await setUpTest();
-      await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getToken()).toBeUndefined();
-      expect(apiTokenActions.getStatus() === 'unauthorized');
-      mockApiTokenResponse({ returnError: true });
-      await setUser({});
-      await waitFor(() => expect(getApiTokenStatus()).toBe('error'));
-      expect(apiTokenActions.getToken()).toBeUndefined();
-      const tokens = mockApiTokenResponse({ audience: testAudience });
-      apiTokenActions.fetch(
-        createApiTokenFetchPayload({ audience: testAudience }),
-      );
-      await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
-    });
+    await setUpTest();
+    await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
+    expect(apiTokenActions.getToken()).toBeUndefined();
+    expect(apiTokenActions.getStatus() === 'unauthorized');
+    mockApiTokenResponse({ returnError: true });
+    await setUser({});
+    await waitFor(() => expect(getApiTokenStatus()).toBe('error'));
+    expect(apiTokenActions.getToken()).toBeUndefined();
+    const tokens = mockApiTokenResponse({ audience: testAudience });
+    apiTokenActions.fetch(
+      createApiTokenFetchPayload({ audience: testAudience }),
+    );
+    await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
+    expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
   });
 
   it('api token is auto fetched when user is authorized', async () => {
-    await act(async () => {
-      const tokens = mockApiTokenResponse({ audience: testAudience });
-      await setUpTest({
-        user: {},
-      });
-      await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
-      await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
+    const tokens = mockApiTokenResponse({ audience: testAudience });
+    await setUpTest({
+      user: {},
     });
+    await waitFor(() => expect(getApiTokenStatus()).toBe('loading'));
+    await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
+    expect(apiTokenActions.getToken()).toEqual(tokens[testAudience]);
   });
   it('api tokens are cleared when user logs out', async () => {
-    await act(async () => {
-      await setUpTest({
-        user: {},
-      });
-      mockApiTokenResponse();
-      await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
-      logoutUser(client);
-      await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
-      expect(apiTokenActions.getToken()).toBeUndefined();
+    mockApiTokenResponse();
+    await setUpTest({
+      user: {},
     });
+    await waitFor(() => expect(getApiTokenStatus()).toBe('loaded'));
+    logoutUser(client);
+    await waitFor(() => expect(getApiTokenStatus()).toBe('unauthorized'));
+    expect(apiTokenActions.getToken()).toBeUndefined();
   });
 });

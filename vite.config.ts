@@ -10,8 +10,9 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    open: true
+    host: true,
   },
+  cacheDir: '/tmp/example-ui-profile-vite',
   test: {
     globals: true,
     environment: 'jsdom',

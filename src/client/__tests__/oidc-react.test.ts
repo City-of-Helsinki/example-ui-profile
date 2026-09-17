@@ -168,8 +168,7 @@ describe('Oidc client ', () => {
       });
       fetchMock.catch(async (callLog) => {
         const req =
-          callLog.request ||
-          new Request(callLog.url, callLog.options as RequestInit);
+          callLog.request || new Request(callLog.url, callLog.options);
         const urlParams = await req.text();
         const audience = new URLSearchParams(urlParams).get(
           'audience',

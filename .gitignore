@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/.pnpm-store
 /.pnp
 .pnp.js
 
@@ -21,8 +22,14 @@
 .env.production.local
 
 npm-debug.log*
+pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Yarn is not used anymore
+yarn.lock
+.yarn/
+.yarnrc.yml
 .vscode
 .eslintcache
 

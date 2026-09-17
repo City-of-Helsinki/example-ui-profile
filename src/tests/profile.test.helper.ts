@@ -16,9 +16,7 @@ export const mockProfileResponse = (options: {
   const requestMock = fetchMock;
   const { response, delay, requestCallback, profileBackendUrl } = options;
   requestMock.once(profileBackendUrl, (callLog) => {
-    const req =
-      callLog.request ||
-      new Request(callLog.url, callLog.options as RequestInit);
+    const req = callLog.request || new Request(callLog.url, callLog.options);
     if (requestCallback) {
       requestCallback(req);
     }

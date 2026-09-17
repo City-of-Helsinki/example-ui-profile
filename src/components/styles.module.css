@@ -120,6 +120,10 @@
   width: 100%;
 }
 
+.loginButton {
+  border-left: 1px solid var(--color-black-20);
+}
+
 .button-container button {
   margin: 0 20px 20px 0;
 }

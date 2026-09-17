@@ -51,9 +51,7 @@ export const mockApiTokenResponse = (
       ...getClientConfig(),
     });
   requestMock.once(endPointUri, (callLog) => {
-    const req =
-      callLog.request ||
-      new Request(callLog.url, callLog.options as RequestInit);
+    const req = callLog.request || new Request(callLog.url, callLog.options);
     if (requestCallback) {
       requestCallback(req);
     }
