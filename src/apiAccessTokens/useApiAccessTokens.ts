@@ -8,12 +8,7 @@ import {
 import { useClient } from '../client/hooks';
 
 export type FetchStatus =
-  | 'unauthorized'
-  | 'ready'
-  | 'loading'
-  | 'error'
-  | 'loaded'
-  | 'waiting';
+  'unauthorized' | 'ready' | 'loading' | 'error' | 'loaded' | 'waiting';
 
 type ApiFetchError = FetchError | string | undefined;
 

@@ -115,7 +115,9 @@ describe(`Client`, () => {
       const userData = eventListeners.getLastCallPayload(
         ClientEvent.AUTHORIZED,
       );
-      expect(userData && (userData as AnyObject).email).toBe(email);
+      expect(userData && 'email' in userData ? userData.email : undefined).toBe(
+        email,
+      );
     });
     it('trying to set authentication status same as it is, does nothing', async () => {
       mockMutator.setClientInitPayload(undefined, { error: 1 });

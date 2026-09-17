@@ -98,7 +98,7 @@ export default function useAuthorizedApiRequests<R, P>(
       setRequestStatus('loaded');
       setResult(data);
       setError(undefined);
-      return data as R;
+      return data;
     },
     [authorizedRequest, getToken],
   );
@@ -108,7 +108,7 @@ export default function useAuthorizedApiRequests<R, P>(
       return;
     }
     const autoFetch = async (): Promise<void> => {
-      requestWrapper(autoFetchPropsRef.current as RequestProps<P>);
+      requestWrapper(autoFetchPropsRef.current);
       autoFetchPropsRef.current = undefined;
     };
     autoFetch();

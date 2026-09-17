@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 // eslint-disable-next-line import/no-namespace
 import * as Sentry from '@sentry/browser';
 
@@ -25,4 +25,8 @@ if (
   });
 }
 
-ReactDOM.render(<BrowserApp />, document.getElementById('root'));
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+  createRoot(rootElement).render(<BrowserApp />);
+}

@@ -59,5 +59,5 @@ export function useApiAccessTokens(audience: string): ApiAccessTokenActions {
       mockApiAccessTokensHookData.apiTokens
         ? mockApiAccessTokensHookData.apiTokens[audience]
         : undefined,
-  } as ApiAccessTokenActions;
+  };
 }

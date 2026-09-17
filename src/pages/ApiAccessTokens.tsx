@@ -53,7 +53,7 @@ const TokenFetcher = ({
 }): React.ReactElement => {
   const [readyCount, updateReadyCount] = useState(0);
   const onCompletion = useCallback(
-    (audience) => {
+    (audience: string) => {
       const index = audiences.findIndex((aud) => aud === audience);
       if (index > -1) {
         updateReadyCount((n) => n + 1);

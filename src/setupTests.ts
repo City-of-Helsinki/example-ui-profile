@@ -9,9 +9,7 @@ vi.mock('react-router', async () => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore: expected ts type error
   ...(await vi.importActual('react-router')),
-  useHistory: (): Record<string, AnyFunction> => ({
-    push: vi.fn(),
-  }),
+  useNavigate: (): AnyFunction => vi.fn(),
 }));
 
 vi.mock('./config', async () => {
