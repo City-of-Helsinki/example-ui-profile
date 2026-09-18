@@ -1,6 +1,12 @@
-import React, { useState, MouseEvent } from 'react';
-import { IconSignout, Navigation } from 'hds-react';
-import { useHistory, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import {
+  Header as HdsHeader,
+  IconSignin,
+  IconSignout,
+  Logo,
+  logoFi,
+} from 'hds-react';
+import { useLocation, useNavigate } from 'react-router';
 import { useClient } from '../client/hooks';
 import styles from './styles.module.css';
 import { getClientConfig } from '../client';
@@ -21,7 +27,7 @@ const Header = (): React.ReactElement => {
   const authenticated = client.isAuthenticated();
   const initialized = client.isInitialized();
   const user = client.getUser();
-  const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname.replace(pathPrefix, '');
   const currentPageFromPath: Page =
@@ -30,144 +36,105 @@ const Header = (): React.ReactElement => {
 
   const title = 'Helsinki Profiili Example';
   const userName = user ? `${user.given_name} ${user.family_name}` : '';
-
-  const frontPageLink = (
-    <Navigation.Item
-      active={active === 'frontpage'}
-      label="Etusivu"
-      key="frontpage"
-      tabIndex={0}
-      onClick={(): void => {
-        setActive('frontpage');
-        history.push(pathPrefix);
-      }}
-      data-test-id="header-link-frontpage"
-    />
-  );
-
-  const accessTokenLink = (
-    <Navigation.Item
-      active={active === 'apiAccessTokens'}
-      as="button"
-      label="Hae API access token"
-      key="apiAccessTokens"
-      type="button"
-      onClick={(): void => {
-        setActive('apiAccessTokens');
-        history.push(`${pathPrefix}/apiAccessTokens`);
-      }}
-      data-test-id="header-link-apiAccessTokens"
-    />
-  );
-
-  const userTokenLink = (
-    <Navigation.Item
-      active={active === 'userTokens'}
-      as="button"
-      label="Tokenit"
-      key="userTokens"
-      type="button"
-      onClick={(): void => {
-        setActive('userTokens');
-        history.push(`${pathPrefix}/userTokens`);
-      }}
-      data-test-id="header-link-userTokens"
-    />
-  );
-
-  const profileLink = (
-    <Navigation.Item
-      active={active === 'profile'}
-      as="button"
-      label="Profiili"
-      key="profile"
-      type="button"
-      onClick={(): void => {
-        setActive('profile');
-        history.push(`${pathPrefix}/profile`);
-      }}
-      data-test-id="header-link-profile"
-    />
-  );
-  const userInfoLink = (
-    <Navigation.Item
-      active={active === 'userinfo'}
-      as="button"
-      label="User info"
-      key="userinfo"
-      type="button"
-      onClick={(): void => {
-        setActive('userinfo');
-        history.push(`${pathPrefix}/userinfo`);
-      }}
-      data-test-id="header-link-user-info"
-    />
-  );
-  const backendLink = (
-    <Navigation.Item
-      active={active === 'backend'}
-      as="button"
-      label="Backend data"
-      key="backend"
-      type="button"
-      onClick={(): void => {
-        setActive('backend');
-        history.push(`${pathPrefix}/backend`);
-      }}
-      data-test-id="header-link-backend"
-    />
-  );
-
-  const links = [
-    frontPageLink,
-    accessTokenLink,
-    userTokenLink,
-    userInfoLink,
-    profileLink,
-    backendLink,
-  ];
+  const navigateTo =
+    (page: Page, destination: string) => (event: React.MouseEvent) => {
+      event.preventDefault();
+      setActive(page);
+      navigate(destination);
+    };
 
   return (
-    <Navigation
-      fixed={false}
-      logoLanguage="fi"
-      menuToggleAriaLabel="Close menu"
-      theme="light"
-      title={title}
-      titleUrl="/"
-      skipTo="#content"
-      skipToContentLabel="Skip to main content">
-      <Navigation.Row variant="inline">
-        {links.map((link) => link)}
-      </Navigation.Row>
-      <Navigation.Actions>
-        {initialized && (
-          <Navigation.User
-            authenticated={authenticated}
-            label="Kirjaudu sisään"
-            onSignIn={(): void => client.login()}
-            userName={userName}>
-            <Navigation.Item
-              href={`${config.ui.profileUIUrl}/loginsso`}
-              label="Helsinki-profiili"
-              target="_blank"
-              className={styles['link-to-profile']}
+    <HdsHeader theme="light">
+      <HdsHeader.ActionBar
+        frontPageLabel="Etusivu"
+        logo={<Logo src={logoFi} alt="Helsingin kaupunki" />}
+        logoAriaLabel="Helsingin kaupunki"
+        logoHref={pathPrefix}
+        title={title}
+        titleHref={pathPrefix}
+        titleStyle={HdsHeader.TitleStyleType.Bold}
+        menuButtonAriaLabel="Avaa valikko">
+        {initialized &&
+          (authenticated ? (
+            <>
+              <HdsHeader.ActionBarItem
+                id="user"
+                label={userName}
+                fixedRightPosition
+              />
+              <HdsHeader.ActionBarButton
+                id="logout"
+                label="Kirjaudu ulos"
+                icon={<IconSignout aria-hidden />}
+                onClick={(): void => client.logout()}
+              />
+            </>
+          ) : (
+            <HdsHeader.ActionBarButton
+              id="login"
+              label="Kirjaudu sisään"
+              icon={<IconSignin aria-hidden />}
+              className={styles.loginButton}
+              onClick={(): void => client.login()}
             />
-            <Navigation.Item
-              onClick={(e: MouseEvent): void => {
-                e.preventDefault();
-                client.logout();
-              }}
-              variant="supplementary"
-              label="Kirjaudu ulos"
-              href="/logout"
-              className={styles.navigationButton}
-              icon={<IconSignout aria-hidden />}
-            />
-          </Navigation.User>
+          ))}
+      </HdsHeader.ActionBar>
+      <HdsHeader.NavigationMenu>
+        <HdsHeader.Link
+          href={pathPrefix}
+          label="Etusivu"
+          active={active === 'frontpage'}
+          onClick={navigateTo('frontpage', pathPrefix)}
+          data-test-id="header-link-frontpage"
+        />
+        <HdsHeader.Link
+          href={`${pathPrefix}/apiAccessTokens`}
+          label="Hae API access token"
+          active={active === 'apiAccessTokens'}
+          onClick={navigateTo(
+            'apiAccessTokens',
+            `${pathPrefix}/apiAccessTokens`,
+          )}
+          data-test-id="header-link-apiAccessTokens"
+        />
+        <HdsHeader.Link
+          href={`${pathPrefix}/userTokens`}
+          label="Tokenit"
+          active={active === 'userTokens'}
+          onClick={navigateTo('userTokens', `${pathPrefix}/userTokens`)}
+          data-test-id="header-link-userTokens"
+        />
+        <HdsHeader.Link
+          href={`${pathPrefix}/userinfo`}
+          label="User info"
+          active={active === 'userinfo'}
+          onClick={navigateTo('userinfo', `${pathPrefix}/userinfo`)}
+          data-test-id="header-link-user-info"
+        />
+        <HdsHeader.Link
+          href={`${pathPrefix}/profile`}
+          label="Profiili"
+          active={active === 'profile'}
+          onClick={navigateTo('profile', `${pathPrefix}/profile`)}
+          data-test-id="header-link-profile"
+        />
+        <HdsHeader.Link
+          href={`${pathPrefix}/backend`}
+          label="Backend data"
+          active={active === 'backend'}
+          onClick={navigateTo('backend', `${pathPrefix}/backend`)}
+          data-test-id="header-link-backend"
+        />
+        {initialized && authenticated && (
+          <HdsHeader.Link
+            href={`${config.ui.profileUIUrl}/loginsso`}
+            label="Helsinki-profiili"
+            target="_blank"
+            className={styles['link-to-profile']}
+          />
         )}
-      </Navigation.Actions>
-    </Navigation>
+      </HdsHeader.NavigationMenu>
+    </HdsHeader>
   );
 };
 

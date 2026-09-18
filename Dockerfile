@@ -1,99 +1,48 @@
-# ===============================================
-FROM registry.access.redhat.com/ubi9/nodejs-22 AS appbase
-# ===============================================
+# ============================================================
+# STAGE 1: Build the application
+# ============================================================
+FROM helsinki.azurecr.io/ubi9/nodejs-24-pnpm-builder-base AS appbase
 
 WORKDIR /app
 
-USER root
-# Download the Yarn repo securely
-RUN curl --fail --proto "=https" --silent --show-error --location https://dl.yarnpkg.com/rpm/yarn.repo -o /etc/yum.repos.d/yarn.repo \
-    && rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
+COPY --chown=default:root package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY --chown=default:root ./scripts ./scripts
+COPY --chown=default:root ./public ./public
+RUN pnpm install --frozen-lockfile --ignore-scripts && pnpm store prune
+RUN pnpm update-runtime-env
 
-# Install Yarn
-RUN yum -y install yarn
-
-# Offical image has npm log verbosity as info. More info - https://github.com/nodejs/docker-node#verbosity
-ENV NPM_CONFIG_LOGLEVEL=warn
-
-# set our node environment, either development or production
-# defaults to production, compose overrides this to development on build and run
-ARG NODE_ENV=production
-ENV NODE_ENV=$NODE_ENV
-
-# Global npm deps in a non-root user directory
-ENV NPM_CONFIG_PREFIX=/app/.npm-global
-ENV PATH=$PATH:/app/.npm-global/bin
-
-# Yarn
-ENV YARN_VERSION=1.22.22
-RUN yarn policies set-version $YARN_VERSION
-
-# Copy package.json and package-lock.json/yarn.lock files
-COPY package.json yarn.lock /app/
-RUN chown -R default:root /app
-
-# Use non-root user
-USER default
-
-# Install npm depepndencies
-ENV PATH=/app/node_modules/.bin:$PATH
-
-RUN yarn config set network-timeout 300000
-RUN yarn install --frozen-lockfile --ignore-scripts && yarn cache clean --force
-
-# Copy all necessary files
-COPY tsconfig.json eslint.config.mjs .prettierrc .env .env.development .env.test /app/
-COPY /public/ /app/public
-COPY /scripts/ /app/scripts
-COPY /src/ /app/src
+COPY --chown=default:root index.html vite.config.ts tsconfig.json eslint.config.mjs .prettierrc .env* ./
+COPY --chown=default:root ./src ./src
 
 
-# =============================
+# ============================================================
+# STAGE 2: Development
+# ============================================================
 FROM appbase AS development
-# =============================
 
 WORKDIR /app
+ENV NODE_ENV=development
+EXPOSE 3000
+CMD pnpm start
 
-# Set NODE_ENV to development in the development container
-ARG NODE_ENV=development
-ENV NODE_ENV=$NODE_ENV
 
-# Bake package.json start command into the image
-CMD ["yarn", "start"]
-
-# ===================================
+# ============================================================
+# STAGE 3: Static builder
+# ============================================================
 FROM appbase AS staticbuilder
-# ===================================
 
-COPY . /app
-RUN yarn build
+RUN pnpm build
 
-# =============================
-FROM registry.access.redhat.com/ubi9/nginx-122 AS production
-# =============================
 
-USER root
-
-RUN chgrp -R 0 /usr/share/nginx/html && \
-    chmod -R g=u /usr/share/nginx/html
+# ============================================================
+# STAGE 4: Production runtime
+# ============================================================
+FROM helsinki.azurecr.io/ubi10/nginx-126-spa-standard AS production
 
 # Copy static build
 COPY --from=staticbuilder /app/dist /usr/share/nginx/html
 
-# Copy nginx config
-COPY .prod/nginx.conf  /etc/nginx/nginx.conf
-
-
+# Setup runtime environment injection using env.sh from the base image
 WORKDIR /usr/share/nginx/html
-
-# Copy default environment config and setup script
-# Copy package.json so env.sh can read it
-COPY ./scripts/env.sh /opt/env.sh
-COPY .env /opt/.env
-COPY package.json /opt/package.json
-RUN chmod +x /opt/env.sh
-
-EXPOSE 8080
-
-CMD ["/bin/bash", "-c", "/opt/env.sh /opt /usr/share/nginx/html && nginx -g \"daemon off;\""]
-
+COPY .env .
+COPY package.json .

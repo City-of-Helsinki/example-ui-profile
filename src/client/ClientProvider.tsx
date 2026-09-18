@@ -11,7 +11,9 @@ export const ClientContext = React.createContext<ClientContextProps | null>(
   null,
 );
 
-export const ClientProvider: FC<Partial<ClientConfig>> = ({ children }) => {
+export const ClientProvider: FC<
+  React.PropsWithChildren<Partial<ClientConfig>>
+> = ({ children }) => {
   const client = useClient();
   return (
     <ClientContext.Provider

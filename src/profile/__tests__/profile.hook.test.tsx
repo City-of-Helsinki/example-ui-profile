@@ -110,73 +110,63 @@ describe('Profile.ts useProfileWithApiTokens hook ', () => {
   };
 
   it('depends on apiAccessToken hook and changes with it', async () => {
-    await act(async () => {
-      await setUpTest({
-        response: createValidProfileResponse(),
-      });
-      await waitFor(() =>
-        expect(getApiAccessTokenStatus()).toBe('unauthorized'),
-      );
-      await setUser({});
-      await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
-      await waitFor(() => expect(getProfileStatus()).toBe('loading'));
-      await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
-      expect((profileActions.getData() as ProfileData).firstName).toEqual(
-        'firstName',
-      );
+    await setUpTest({
+      response: createValidProfileResponse(),
     });
+    await waitFor(() => expect(getApiAccessTokenStatus()).toBe('unauthorized'));
+    await setUser({});
+    await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
+    await waitFor(() => expect(getProfileStatus()).toBe('loading'));
+    await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
+    expect((profileActions.getData() as ProfileData).firstName).toEqual(
+      'firstName',
+    );
   });
 
   it('provides a "fetch"-action that requests data', async () => {
-    await act(async () => {
-      await setUpTest({
-        response: createValidProfileResponse(),
-      });
-      await setUser({});
-      await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
-      mockProfileResponse({
-        response: createInvalidProfileResponse(),
-        profileBackendUrl,
-      });
-      profileActions.request({});
-      await waitFor(() => expect(getProfileStatus()).toBe('error'));
-      mockProfileResponse({
-        response: createValidProfileResponse(),
-        profileBackendUrl,
-      });
-      profileActions.request({});
-      await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
+    await setUpTest({
+      response: createValidProfileResponse(),
     });
+    await setUser({});
+    await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
+    mockProfileResponse({
+      response: createInvalidProfileResponse(),
+      profileBackendUrl,
+    });
+    profileActions.request({});
+    await waitFor(() => expect(getProfileStatus()).toBe('error'));
+    mockProfileResponse({
+      response: createValidProfileResponse(),
+      profileBackendUrl,
+    });
+    profileActions.request({});
+    await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
   });
 
   it('provides a "clear"-action that clears stored profile data and sets status back to "ready"', async () => {
-    await act(async () => {
-      await setUser({});
-      await setUpTest({
-        response: createValidProfileResponse(),
-      });
-
-      await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
-      await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
-      expect(profileActions.getData()).toBeDefined();
-      profileActions.clear();
-      expect(profileActions.getData()).toBeUndefined();
-      expect(profileActions.getStatus()).toBe('ready');
+    await setUser({});
+    await setUpTest({
+      response: createValidProfileResponse(),
     });
+
+    await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
+    await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
+    expect(profileActions.getData()).toBeDefined();
+    await act(async () => profileActions.clear());
+    expect(profileActions.getData()).toBeUndefined();
+    expect(profileActions.getStatus()).toBe('ready');
   });
 
   it('profile data is cleared, when user logs out and status is set to "error", because user is unauthorized', async () => {
-    await act(async () => {
-      await setUser({});
-      await setUpTest({
-        response: createValidProfileResponse(),
-      });
-
-      await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
-      await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
-      logoutUser(client);
-      await waitFor(() => expect(getProfileStatus()).toBe('error'));
-      expect(profileActions.getData()).toBeUndefined();
+    await setUser({});
+    await setUpTest({
+      response: createValidProfileResponse(),
     });
+
+    await waitFor(() => expect(getApiAccessTokenStatus()).toBe('loaded'));
+    await waitFor(() => expect(getProfileStatus()).toBe('loaded'));
+    logoutUser(client);
+    await waitFor(() => expect(getProfileStatus()).toBe('error'));
+    expect(profileActions.getData()).toBeUndefined();
   });
 });

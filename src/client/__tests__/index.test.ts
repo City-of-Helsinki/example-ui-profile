@@ -207,8 +207,7 @@ describe('Client factory ', () => {
     it('where access token is added to headers and audience is in the body. GrantType and permission are not added to body, if not set', async () => {
       fetchMock.route(fetchConfig.uri, (callLog) => {
         const req =
-          callLog.request ||
-          new Request(callLog.url, callLog.options as RequestInit);
+          callLog.request || new Request(callLog.url, callLog.options);
         lastRequest = req;
         return Promise.resolve(apiTokenResponse);
       });
@@ -228,8 +227,7 @@ describe('Client factory ', () => {
     it('where grantType and permission are added to body, if set', async () => {
       fetchMock.route(fetchConfig.uri, (callLog) => {
         const req =
-          callLog.request ||
-          new Request(callLog.url, callLog.options as RequestInit);
+          callLog.request || new Request(callLog.url, callLog.options);
         lastRequest = req;
         return Promise.resolve(apiTokenResponse);
       });

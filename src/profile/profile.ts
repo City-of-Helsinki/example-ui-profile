@@ -120,8 +120,7 @@ export type ProfileQueryResult = {
   errors?: readonly GraphQLError[];
 };
 export type GraphQLProfile =
-  | Record<string, { edges: { node: { email: string } }[] }>
-  | undefined;
+  Record<string, { edges: { node: { email: string } }[] }> | undefined;
 
 type ReturnData = ProfileData;
 type FetchProps = { autoFetch: boolean } | undefined;

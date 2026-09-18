@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Route, Redirect } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
 
 import { ClientProvider } from './client/ClientProvider';
 import StoreProvider from './client/redux/StoreProvider';
@@ -26,36 +26,27 @@ function App(): React.ReactElement {
         <StoreProvider>
           <PageContainer>
             <Header />
-            <Switch>
-              <Route path={'/'} exact>
-                <Redirect to={keycloakPath} />
-              </Route>
-              <Route path={[keycloakPath]} exact>
-                <Index />
-              </Route>
-              <Route path={['/:anyPath/userTokens']} exact>
-                <Tokens />
-              </Route>
-              <Route path={[`/:anyPath/userinfo`]} exact>
-                <UserInfo />
-              </Route>
-              <Route path={[`/:anyPath/apiAccessTokens`]} exact>
-                <ApiAccessTokens />
-              </Route>
-              <Route path={[`/:anyPath/backend`]} exact>
-                <BackendData />
-              </Route>
-              <Route path={[`/:anyPath/profile`]} exact>
-                <ProfilePage />
-              </Route>
-              <Route path={['/authError']} exact>
-                <div>Autentikaatio epäonnistui</div>
-              </Route>
-              <Route path={['/logout']} exact>
-                <LogOut />
-              </Route>
-              <Route path="*">404 - not found</Route>
-            </Switch>
+            <Routes>
+              <Route
+                path="/"
+                element={<Navigate to={keycloakPath} replace />}
+              />
+              <Route path={keycloakPath} element={<Index />} />
+              <Route path="/:anyPath/userTokens" element={<Tokens />} />
+              <Route path="/:anyPath/userinfo" element={<UserInfo />} />
+              <Route
+                path="/:anyPath/apiAccessTokens"
+                element={<ApiAccessTokens />}
+              />
+              <Route path="/:anyPath/backend" element={<BackendData />} />
+              <Route path="/:anyPath/profile" element={<ProfilePage />} />
+              <Route
+                path="/authError"
+                element={<div>Autentikaatio epäonnistui</div>}
+              />
+              <Route path="/logout" element={<LogOut />} />
+              <Route path="*" element={<>404 - not found</>} />
+            </Routes>
           </PageContainer>
         </StoreProvider>
       </ClientProvider>

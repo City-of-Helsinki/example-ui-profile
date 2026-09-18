@@ -28,7 +28,7 @@ const ClientGetUser = (): React.ReactElement => {
   useEffect(() => {
     // useEffect itself cannot be async
     const load = async () => loadProfile();
-    load();
+    load().catch(() => undefined);
   }, [loadProfile]);
 
   if (status === 'loading') {

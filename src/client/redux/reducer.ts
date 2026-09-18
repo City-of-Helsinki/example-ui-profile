@@ -6,7 +6,7 @@ import { CONNECTED_ACTION } from './actions';
 const reducer: Reducer = (state, action): StoreState => {
   switch (action.type) {
     case CONNECTED_ACTION:
-      const client: Client = action.payload;
+      const client = action.payload as Client;
       const status = client.getStatus();
       const authenticated = client.isAuthenticated();
       const initialized = client.isInitialized();

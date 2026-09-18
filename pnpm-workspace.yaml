@@ -1,0 +1,10 @@
+# Keep dependency installation consistent with the repository package manager policy.
+minimumReleaseAge: 10080
+
+overrides:
+  node-fetch: ^2.6.7
+  '@babel/runtime': ^7.26.10
+
+allowBuilds:
+  '@react-spring/core': false
+  react-virtual: false
