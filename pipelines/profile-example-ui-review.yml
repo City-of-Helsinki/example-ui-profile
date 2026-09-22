@@ -38,6 +38,7 @@ resources:
     # Azure DevOps repository
     - repository: example-profile-pipelines
       type: git
+      ref: ansible_automation_update
       # Azure DevOps project/repository
       name: example-profile/example-profile-pipelines
 
