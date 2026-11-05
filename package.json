@@ -30,7 +30,7 @@
     "hds-design-tokens": "^6.0.5",
     "hds-react": "^6.0.5",
     "http-status-typed": "1.0.1",
-    "jwt-decode": "^3.1.2",
+    "jwt-decode": "^4.0.0",
     "oidc-client-ts": "^3.5.0",
     "prettier": "^3.8.1",
     "react": "^19.2.8",

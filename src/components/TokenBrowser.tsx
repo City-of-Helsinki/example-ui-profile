@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { getClientConfig, JWTPayload } from '../client';
 import { useClient } from '../client/hooks';
 import styles from './styles.module.css';
@@ -29,10 +29,10 @@ const TokenBrowser = (): React.ReactElement => {
     selectedToken.length >= minimunActualTokenLength &&
     selectedToken.indexOf('.') > -1;
   const decodedPayload: JWTPayload | undefined =
-    isToken && selectedToken ? jwtDecode(selectedToken) : undefined;
+    isToken && selectedToken ? jwtDecode<JWTPayload>(selectedToken) : undefined;
   const decodedHeader: JWTPayload | undefined =
     decodedPayload && selectedToken
-      ? jwtDecode(selectedToken, { header: true })
+      ? jwtDecode<JWTPayload>(selectedToken, { header: true })
       : undefined;
   const onTokenSelectionChange = (
     newToken: string | undefined,
