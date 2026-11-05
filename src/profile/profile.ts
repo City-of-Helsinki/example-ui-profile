@@ -1,5 +1,5 @@
 import to from 'await-to-js';
-import { GraphQLError } from 'graphql';
+import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { useCallback } from 'react';
 import { ApolloError, gql } from '@apollo/client';
 import {
@@ -117,7 +117,7 @@ export type ProfileQueryResult = {
   data: {
     myProfile: GraphQLProfile;
   };
-  errors?: readonly GraphQLError[];
+  errors?: readonly GraphQLFormattedError[];
 };
 export type GraphQLProfile =
   Record<string, { edges: { node: { email: string } }[] }> | undefined;
@@ -161,6 +161,14 @@ export function convertQueryToData(
   };
 }
 
+// Errors in a query result are plain objects, not Error instances
+function toGraphQLError(error: GraphQLFormattedError): GraphQLError {
+  return new GraphQLError(error.message, {
+    path: error.path,
+    extensions: error.extensions,
+  });
+}
+
 export async function getProfileData(
   token?: string,
 ): Promise<ProfileQueryResult | GraphQLClientError> {
@@ -191,8 +199,8 @@ export async function getProfileData(
   const data = convertQueryToData(result);
   if (!data) {
     return {
-      error: result.errors
-        ? result.errors[0]
+      error: result.errors?.[0]
+        ? toGraphQLError(result.errors[0])
         : new Error('Query result is missing data.myProfile'),
     };
   }
