@@ -11,7 +11,7 @@
   "dependencies": {
     "@apollo/client": "3.14.1",
     "@fetch-mock/vitest": "0.2.18",
-    "@sentry/browser": "^10.74.0",
+    "@sentry/browser": "^11.10.0",
     "@types/node": "^24.13.4",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",

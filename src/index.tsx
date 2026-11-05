@@ -19,9 +19,27 @@ if (
   window._env_.REACT_APP_ENVIRONMENT &&
   ENVS_WITH_SENTRY.includes(window._env_.REACT_APP_ENVIRONMENT)
 ) {
+  // Sentry 11 collects more data by default when dataCollection is unset.
+  // Keep the restrictive Sentry 10 defaults, since this app handles
+  // personal data and access tokens.
+  const piiDenyList = ['forwarded', '-ip', 'remote-', 'via', '-user'];
   Sentry.init({
     dsn: window._env_.REACT_APP_SENTRY_DSN,
     environment: window._env_.REACT_APP_ENVIRONMENT,
+    dataCollection: {
+      userInfo: false,
+      cookies: false,
+      httpHeaders: {
+        request: { deny: piiDenyList },
+        response: { deny: piiDenyList },
+      },
+      httpBodies: [],
+      urlQueryParams: { deny: piiDenyList },
+      genAI: { inputs: false, outputs: false },
+      databaseQueryData: false,
+      queues: false,
+      graphQL: { document: false, variables: false },
+    },
   });
 }
 
