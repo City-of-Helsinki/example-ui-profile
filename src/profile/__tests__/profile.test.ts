@@ -1,4 +1,5 @@
 import fetchMock from '@fetch-mock/vitest';
+import { GraphQLError } from 'graphql';
 import {
   clearGraphQlClient,
   convertQueryToData,
@@ -145,5 +146,32 @@ describe('Profile.ts', () => {
     const res = (await getProfileData(token)) as ProfileQueryResult;
     expect(res.data.myProfile?.firstName).toBe('firstName');
     expect(isApiTokenInRequest(lastRequest)).toBe(true);
+  });
+
+  it('getProfileData() returns the first GraphQL error as an Error when data is missing', async () => {
+    const token = setValidApiToken();
+    mockProfileResponse({
+      response: {
+        status: 200,
+        body: JSON.stringify({
+          data: { myProfile: null },
+          errors: [
+            {
+              message: 'Permission denied',
+              path: ['myProfile'],
+              extensions: { code: 'PERMISSION_DENIED_ERROR' },
+            },
+          ],
+        }),
+      },
+      profileBackendUrl,
+    });
+    const result = (await getProfileData(token)) as GraphQLClientError;
+    expect(result.error).toBeInstanceOf(GraphQLError);
+    expect(result.error?.message).toBe('Permission denied');
+    expect((result.error as GraphQLError).path).toEqual(['myProfile']);
+    expect((result.error as GraphQLError).extensions).toEqual({
+      code: 'PERMISSION_DENIED_ERROR',
+    });
   });
 });

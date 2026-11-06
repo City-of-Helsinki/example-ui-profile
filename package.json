@@ -9,7 +9,7 @@
     "pnpm": ">=11.9.0"
   },
   "dependencies": {
-    "@apollo/client": "3.5.6",
+    "@apollo/client": "3.14.1",
     "@fetch-mock/vitest": "0.2.18",
     "@sentry/browser": "^10.74.0",
     "@types/node": "^24.13.4",
@@ -25,12 +25,12 @@
     "eslint-plugin-sonarjs": "^4.0.2",
     "eslint-plugin-vitest": "^0.5.4",
     "globals": "^17.4.0",
-    "graphql": "^15.4.0",
+    "graphql": "^16.14.2",
     "hds-core": "^6.0.5",
     "hds-design-tokens": "^6.0.5",
     "hds-react": "^6.0.5",
     "http-status-typed": "1.0.1",
-    "jwt-decode": "^3.1.2",
+    "jwt-decode": "^4.0.0",
     "oidc-client-ts": "^3.5.0",
     "prettier": "^3.8.1",
     "react": "^19.2.8",
