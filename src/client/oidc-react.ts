@@ -6,7 +6,7 @@ import {
   WebStorageStateStore,
   User,
 } from 'oidc-client-ts';
-import HttpStatusCode from 'http-status-typed';
+import { HttpStatusCode } from './http-status-code';
 
 import {
   Client,

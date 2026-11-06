@@ -1,9 +1,9 @@
-import HttpStatusCode from 'http-status-typed';
+import { HttpStatusCode } from '../http-status-code';
 import createHttpPoller, { HttpPoller } from '../http-poller';
 
 type TestProps = {
   requestResponse: {
-    status: HttpStatusCode.OK | HttpStatusCode.FORBIDDEN | -1;
+    status: typeof HttpStatusCode.OK | typeof HttpStatusCode.FORBIDDEN | -1;
   };
   onErrorReturnValue: { keepPolling: boolean };
   shouldPollReturnValue: boolean;
