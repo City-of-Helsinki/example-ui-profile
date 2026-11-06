@@ -1,5 +1,5 @@
 import to from 'await-to-js';
-import HttpStatusCode from 'http-status-typed';
+import { HttpStatusCode } from './http-status-code';
 
 export type HttpPoller = {
   start: () => void;
