@@ -8,9 +8,12 @@ services:
     volumes:
       - '.:/app'
     ports:
-      - '3000:3000'
+      - '3050:3000'
     environment:
       CI: 'true'
     stdin_open: true
     env_file:
+      - .env
       - .env.development
+      - path: .env.local
+        required: false
